@@ -1,0 +1,578 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- 导航栏 -->
+    <nav class="glass-effect rounded-lg p-4 mb-8">
+        <ul class="flex flex-wrap gap-2 md:gap-4">
+            <li><a href="{{ url_for('main.dashboard') }}" class="text-gray-400 hover:text-blue-400 transition-colors">系统首页</a></li>
+            <li><a href="{{ url_for('main.collection_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">采集管理</a></li>
+            <li><a href="{{ url_for('main.crawler_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">爬虫管理</a></li>
+            <li><a href="{{ url_for('main.data_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">数据管理</a></li>
+            <li><a href="{{ url_for('main.deep_collection') }}" class="text-gray-400 hover:text-blue-400 transition-colors">深采管理</a></li>
+            <li><a href="{{ url_for('ai.models') }}" class="text-gray-400 hover:text-blue-400 transition-colors">AI模型管理</a></li>
+            <li><a href="{{ url_for('main.ai_analysis_reports') }}" class="text-gray-400 hover:text-blue-400 transition-colors">AI分析报告</a></li>
+            <li><a href="{{ url_for('main.ai_dashboard') }}" class="text-blue-400 font-bold">AI数智大屏</a></li>
+        </ul>
+    </nav>
+
+    <!-- 页面标题 -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2 neon-text-blue">AI数智大屏</h1>
+        <p class="text-gray-400">实时监控和可视化展示系统运行状态和AI分析结果</p>
+    </div>
+
+    <!-- 实时数据概览 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-blue-400 mb-2">总数据量</h3>
+            <p class="text-4xl font-bold text-white">125,832</p>
+            <p class="text-gray-500 text-sm mt-2">+2,847 今日新增</p>
+        </div>
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-green-400 mb-2">运行爬虫数</h3>
+            <p class="text-4xl font-bold text-white">28</p>
+            <p class="text-gray-500 text-sm mt-2">32 个爬虫总数</p>
+        </div>
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-yellow-400 mb-2">AI分析任务</h3>
+            <p class="text-4xl font-bold text-white">15</p>
+            <p class="text-gray-500 text-sm mt-2">1 个运行中</p>
+        </div>
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-red-400 mb-2">系统负载</h3>
+            <p class="text-4xl font-bold text-white">42%</p>
+            <p class="text-gray-500 text-sm mt-2">CPU使用率</p>
+        </div>
+    </div>
+
+    <!-- 数据可视化区域 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- 舆情趋势图 -->
+        <div class="glass-effect rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-white mb-4">舆情趋势图</h2>
+            <div id="trend-chart" class="w-full h-80"></div>
+        </div>
+        
+        <!-- 3D地球 -->
+        <div class="glass-effect rounded-lg p-6 md:col-span-1">
+            <h2 class="text-xl font-semibold text-white mb-4">全球舆情分布</h2>
+            <div id="earth-chart" class="w-full h-80"></div>
+        </div>
+        
+        <!-- 情感分析饼图 -->
+        <div class="glass-effect rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-white mb-4">情感分析分布</h2>
+            <div id="sentiment-chart" class="w-full h-80"></div>
+        </div>
+        
+        <!-- 数据源分布 -->
+        <div class="glass-effect rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-white mb-4">数据源分布</h2>
+            <div id="source-chart" class="w-full h-80"></div>
+        </div>
+        
+        <!-- 关键词云 -->
+        <div class="glass-effect rounded-lg p-6 md:col-span-2">
+            <h2 class="text-xl font-semibold text-white mb-4">热门关键词</h2>
+            <div id="keyword-cloud" class="w-full h-80 bg-gray-900 rounded-lg flex items-center justify-center">
+                <div class="text-center">
+                    <span class="text-4xl font-bold text-blue-400 mr-4">数字化转型</span>
+                    <span class="text-3xl font-bold text-green-400 mr-4">智慧城市</span>
+                    <span class="text-2xl font-bold text-yellow-400 mr-4">人工智能</span>
+                    <span class="text-2xl font-bold text-red-400 mr-4">大数据</span>
+                    <span class="text-xl font-bold text-purple-400 mr-4">政策</span>
+                    <span class="text-xl font-bold text-cyan-400 mr-4">创新</span>
+                    <span class="text-lg font-bold text-pink-400 mr-4">技术</span>
+                    <span class="text-lg font-bold text-orange-400">应用</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 实时监控区域 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- 爬虫运行状态 -->
+        <div class="glass-effect rounded-lg p-6 md:col-span-2">
+            <h2 class="text-xl font-semibold text-white mb-4">爬虫运行状态</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-white">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="py-3 px-4 text-left">爬虫名称</th>
+                            <th class="py-3 px-4 text-left">状态</th>
+                            <th class="py-3 px-4 text-left">速度</th>
+                            <th class="py-3 px-4 text-left">成功率</th>
+                            <th class="py-3 px-4 text-left">最后更新</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-700 hover:bg-gray-800">
+                            <td class="py-3 px-4">新闻爬虫-1</td>
+                            <td class="py-3 px-4"><span class="status-badge status-success">运行中</span></td>
+                            <td class="py-3 px-4">12 条/分钟</td>
+                            <td class="py-3 px-4">98%</td>
+                            <td class="py-3 px-4">刚刚</td>
+                        </tr>
+                        <tr class="border-b border-gray-700 hover:bg-gray-800">
+                            <td class="py-3 px-4">社交媒体爬虫-2</td>
+                            <td class="py-3 px-4"><span class="status-badge status-success">运行中</span></td>
+                            <td class="py-3 px-4">25 条/分钟</td>
+                            <td class="py-3 px-4">96%</td>
+                            <td class="py-3 px-4">1分钟前</td>
+                        </tr>
+                        <tr class="border-b border-gray-700 hover:bg-gray-800">
+                            <td class="py-3 px-4">论坛爬虫-3</td>
+                            <td class="py-3 px-4"><span class="status-badge status-success">运行中</span></td>
+                            <td class="py-3 px-4">8 条/分钟</td>
+                            <td class="py-3 px-4">92%</td>
+                            <td class="py-3 px-4">2分钟前</td>
+                        </tr>
+                        <tr class="border-b border-gray-700 hover:bg-gray-800">
+                            <td class="py-3 px-4">新闻爬虫-4</td>
+                            <td class="py-3 px-4"><span class="status-badge status-success">运行中</span></td>
+                            <td class="py-3 px-4">15 条/分钟</td>
+                            <td class="py-3 px-4">99%</td>
+                            <td class="py-3 px-4">3分钟前</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 系统状态监控 -->
+        <div class="glass-effect rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-white mb-4">系统状态监控</h2>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-gray-400 mb-1">
+                        <span>CPU使用率</span>
+                        <span>42%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5">
+                        <div class="bg-blue-400 h-2.5 rounded-full" style="width: 42%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-gray-400 mb-1">
+                        <span>内存使用率</span>
+                        <span>68%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5">
+                        <div class="bg-green-400 h-2.5 rounded-full" style="width: 68%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-gray-400 mb-1">
+                        <span>磁盘使用率</span>
+                        <span>72%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5">
+                        <div class="bg-yellow-400 h-2.5 rounded-full" style="width: 72%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-gray-400 mb-1">
+                        <span>网络流量</span>
+                        <span>2.5 MB/s</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5">
+                        <div class="bg-red-400 h-2.5 rounded-full" style="width: 35%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最新AI分析结果 -->
+    <div class="glass-effect rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">最新AI分析结果</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gray-900 rounded-lg p-4">
+                <h3 class="text-md font-semibold text-blue-400 mb-2">趋势分析</h3>
+                <p class="text-gray-300 text-sm">智慧城市相关舆情在1月5日达到峰值，主要围绕政策发布。</p>
+                <div class="mt-3 text-xs text-gray-500">更新于：2026-01-07 09:15</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4">
+                <h3 class="text-md font-semibold text-green-400 mb-2">关键词提取</h3>
+                <p class="text-gray-300 text-sm">"数字化转型"出现频率最高，共1,245次；"智慧城市"次之，共892次。</p>
+                <div class="mt-3 text-xs text-gray-500">更新于：2026-01-07 08:40</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4">
+                <h3 class="text-md font-semibold text-yellow-400 mb-2">情感分析</h3>
+                <p class="text-gray-300 text-sm">正面舆情占比68%，负面舆情占比12%，中性舆情占比20%。</p>
+                <div class="mt-3 text-xs text-gray-500">更新于：2026-01-07 10:15</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+<script>
+    // 初始化图表
+    var trendChart = echarts.init(document.getElementById('trend-chart'));
+    var sentimentChart = echarts.init(document.getElementById('sentiment-chart'));
+    var sourceChart = echarts.init(document.getElementById('source-chart'));
+    var earthChart = echarts.init(document.getElementById('earth-chart'));
+
+    // 从API获取数据
+    function fetchDashboardData() {
+        fetch('/api/dashboard/data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateOverview(data.data.overview);
+                    updateTrendChart(data.data.trend_data);
+                    updateSentimentChart(data.data.sentiment_data);
+                    updateSourceChart(data.data.source_data);
+                    updateEarthChart(data.data.global_data);
+                    updateKeywords(data.data.keywords);
+                    updateCrawlerStatus(data.data.crawler_status);
+                    updateSystemStatus(data.data.system_status);
+                    updateAiAnalysisResults(data.data.ai_analysis_results);
+                }
+            })
+            .catch(error => {
+                console.error('获取数据失败:', error);
+            });
+    }
+
+    // 更新概览数据
+    function updateOverview(overview) {
+        // 更新总数据量
+        document.querySelector('.glass-effect:nth-child(1) p.text-4xl').textContent = overview.total_data.toLocaleString();
+        document.querySelector('.glass-effect:nth-child(1) p.text-gray-500').textContent = `+${overview.today_new} 今日新增`;
+        
+        // 更新运行爬虫数
+        document.querySelector('.glass-effect:nth-child(2) p.text-4xl').textContent = overview.running_crawlers;
+        document.querySelector('.glass-effect:nth-child(2) p.text-gray-500').textContent = `${overview.total_crawlers} 个爬虫总数`;
+        
+        // 更新AI分析任务
+        document.querySelector('.glass-effect:nth-child(3) p.text-4xl').textContent = overview.ai_tasks;
+        document.querySelector('.glass-effect:nth-child(3) p.text-gray-500').textContent = `${overview.running_ai_tasks} 个运行中`;
+        
+        // 更新系统负载
+        document.querySelector('.glass-effect:nth-child(4) p.text-4xl').textContent = `${overview.system_load}%`;
+    }
+
+    // 更新趋势图
+    function updateTrendChart(trendData) {
+        var trendOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['正面', '负面', '中性'],
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: trendData.dates,
+                axisLabel: {
+                    color: '#fff'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    color: '#fff'
+                }
+            },
+            series: [
+                {
+                    name: '正面',
+                    type: 'line',
+                    stack: '总量',
+                    data: trendData.positive,
+                    lineStyle: {
+                        color: '#52c41a'
+                    },
+                    areaStyle: {
+                        color: 'rgba(82, 196, 26, 0.3)'
+                    }
+                },
+                {
+                    name: '负面',
+                    type: 'line',
+                    stack: '总量',
+                    data: trendData.negative,
+                    lineStyle: {
+                        color: '#ff4d4f'
+                    },
+                    areaStyle: {
+                        color: 'rgba(255, 77, 79, 0.3)'
+                    }
+                },
+                {
+                    name: '中性',
+                    type: 'line',
+                    stack: '总量',
+                    data: trendData.neutral,
+                    lineStyle: {
+                        color: '#faad14'
+                    },
+                    areaStyle: {
+                        color: 'rgba(250, 173, 20, 0.3)'
+                    }
+                }
+            ]
+        };
+        trendChart.setOption(trendOption);
+    }
+
+    // 更新情感分析饼图
+    function updateSentimentChart(sentimentData) {
+        var sentimentOption = {
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            series: [
+                {
+                    name: '情感分布',
+                    type: 'pie',
+                    radius: '50%',
+                    data: sentimentData,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+        sentimentChart.setOption(sentimentOption);
+    }
+
+    // 更新数据源分布图表
+    function updateSourceChart(sourceData) {
+        var sourceOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: sourceData.sources,
+                axisLabel: {
+                    color: '#fff'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    color: '#fff'
+                }
+            },
+            series: [
+                {
+                    name: '数据量',
+                    type: 'bar',
+                    data: sourceData.counts,
+                    itemStyle: {
+                        color: function(params) {
+                            var colors = ['#1890ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1'];
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }
+            ]
+        };
+        sourceChart.setOption(sourceOption);
+    }
+
+    // 更新3D地球
+    function updateEarthChart(globalData) {
+        var earthOption = {
+            backgroundColor: 'transparent',
+            globe: {
+                baseTexture: 'https://fastly.jsdelivr.net/gh/apache/echarts-examples/public/data-gl/asset/world.topo.bathy.200401.jpg',
+                heightTexture: null,
+                displacementScale: 0,
+                environment: 'rgba(0,0,0,1)',
+                shading: 'lambert',
+                atmosphere: {
+                    show: true,
+                    color: 'rgba(120, 180, 255, 0.35)'
+                },
+                viewControl: {
+                    autoRotate: true,
+                    autoRotateSpeed: 2,
+                    distance: 140,
+                    alpha: 20,
+                    beta: -120,
+                    projection: 'perspective'
+                },
+                light: {
+                    main: {
+                        intensity: 1.3,
+                        shadow: true
+                    },
+                    ambient: {
+                        intensity: 0.7
+                    }
+                }
+            },
+            series: [{
+                type: 'scatter3D',
+                coordinateSystem: 'globe',
+                data: globalData,
+                symbolSize: function(val) {
+                    var base = Math.sqrt(val[2] || 0);
+                    return Math.max(base, 4);
+                },
+                itemStyle: {
+                    color: '#00E5FF',
+                    opacity: 0.9
+                },
+                emphasis: {
+                    itemStyle: {
+                        color: '#FFFF8D',
+                        opacity: 1
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}',
+                        position: 'right',
+                        color: '#fff',
+                        fontSize: 12
+                    }
+                }
+            }]
+        };
+        earthChart.setOption(earthOption);
+    }
+
+    // 更新关键词云
+    function updateKeywords(keywords) {
+        var keywordCloud = document.getElementById('keyword-cloud');
+        keywordCloud.innerHTML = '';
+        var keywordContainer = document.createElement('div');
+        keywordContainer.className = 'text-center';
+        
+        keywords.forEach((keyword, index) => {
+            var span = document.createElement('span');
+            var fontSize = 4 - Math.floor(index / 2);
+            var colors = ['text-blue-400', 'text-green-400', 'text-yellow-400', 'text-red-400', 'text-purple-400', 'text-cyan-400', 'text-pink-400', 'text-orange-400'];
+            span.className = `text-${fontSize}xl font-bold ${colors[index % colors.length]} mr-4`;
+            span.textContent = keyword;
+            keywordContainer.appendChild(span);
+        });
+        
+        keywordCloud.appendChild(keywordContainer);
+    }
+
+    // 更新爬虫运行状态
+    function updateCrawlerStatus(crawlerStatus) {
+        var tableBody = document.querySelector('.glass-effect:nth-child(1) table tbody');
+        tableBody.innerHTML = '';
+        
+        crawlerStatus.forEach(crawler => {
+            var row = document.createElement('tr');
+            row.className = 'border-b border-gray-700 hover:bg-gray-800';
+            
+            var statusClass = crawler.status === '运行中' ? 'status-success' : 'status-failed';
+            
+            row.innerHTML = `
+                <td class="py-3 px-4">${crawler.name}</td>
+                <td class="py-3 px-4"><span class="status-badge ${statusClass}">${crawler.status}</span></td>
+                <td class="py-3 px-4">${crawler.speed}</td>
+                <td class="py-3 px-4">${crawler.success_rate}</td>
+                <td class="py-3 px-4">${crawler.last_update}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
+
+    // 更新系统状态监控
+    function updateSystemStatus(systemStatus) {
+        var systemStatusContainer = document.querySelector('.glass-effect:nth-child(2) .space-y-4');
+        systemStatusContainer.innerHTML = '';
+        
+        var statusItems = [
+            { label: 'CPU使用率', value: systemStatus.cpu, unit: '%', color: 'bg-blue-400' },
+            { label: '内存使用率', value: systemStatus.memory, unit: '%', color: 'bg-green-400' },
+            { label: '磁盘使用率', value: systemStatus.disk, unit: '%', color: 'bg-yellow-400' },
+            { label: '网络流量', value: systemStatus.network_speed, unit: '', color: 'bg-red-400' }
+        ];
+        
+        statusItems.forEach(item => {
+            var div = document.createElement('div');
+            div.innerHTML = `
+                <div class="flex justify-between text-gray-400 mb-1">
+                    <span>${item.label}</span>
+                    <span>${item.value}${item.unit}</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div class="${item.color} h-2.5 rounded-full" style="width: ${item.value}%"></div>
+                </div>
+            `;
+            systemStatusContainer.appendChild(div);
+        });
+    }
+
+    // 更新AI分析结果
+    function updateAiAnalysisResults(aiAnalysisResults) {
+        var container = document.querySelector('.glass-effect:last-child .grid');
+        container.innerHTML = '';
+        
+        aiAnalysisResults.forEach(result => {
+            var div = document.createElement('div');
+            div.className = 'bg-gray-900 rounded-lg p-4';
+            
+            var colors = ['text-blue-400', 'text-green-400', 'text-yellow-400'];
+            var colorIndex = aiAnalysisResults.indexOf(result) % colors.length;
+            
+            div.innerHTML = `
+                <h3 class="text-md font-semibold ${colors[colorIndex]} mb-2">${result.type}</h3>
+                <p class="text-gray-300 text-sm">${result.content}</p>
+                <div class="mt-3 text-xs text-gray-500">更新于：${result.updated_at}</div>
+            `;
+            
+            container.appendChild(div);
+        });
+    }
+
+    // 响应式处理
+    window.addEventListener('resize', function() {
+        trendChart.resize();
+        sentimentChart.resize();
+        sourceChart.resize();
+        earthChart.resize();
+    });
+
+    // 页面加载时获取数据
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchDashboardData();
+        // 每30秒刷新一次数据
+        setInterval(fetchDashboardData, 30000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-Bcrypt
+Flask-WTF
+openai
+python-dotenv
+websockets
+
+beautifulsoup4
+requests
+crawl4ai

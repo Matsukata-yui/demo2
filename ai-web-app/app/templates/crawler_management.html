@@ -1,0 +1,922 @@
+{% extends 'base.html' %}
+
+{% block title %}爬虫管理 - AI智能政企瞭望舆情数据采集与分析系统{% endblock %}
+
+{% block head %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header class='bg-dark-light/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 transition-all duration-300'>
+    <div class='container mx-auto px-4'>
+        <div class='flex items-center justify-between h-16 md:h-20'>
+            <!-- 品牌Logo -->
+            <div class='flex items-center space-x-3'>
+                <div class='w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center neon-border'>
+                    <i class='fas fa-microchip text-xl'></i>
+                </div>
+                <h1 class='text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary text-gradient'>DataAI</h1>
+            </div>
+            <!-- 桌面端导航 -->
+            <nav class='hidden md:flex items-center space-x-1'>
+                <a href='{{ url_for('main.dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-tachometer-alt mr-2'></i>后台主页</a>
+                <a href='{{ url_for('main.collection_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-database mr-2'></i>采集管理</a>
+                <a href='{{ url_for('main.crawler_management') }}' class='px-4 py-2 rounded-md text-primary border border-primary/30 bg-primary/10 font-medium transition-all hover:bg-primary/20'><i class='fas fa-spider mr-2'></i>爬虫管理</a>
+                <a href='{{ url_for('main.data_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-table mr-2'></i>数据管理</a>
+                <a href='{{ url_for('main.deep_collection') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-search-plus mr-2'></i>深采管理</a>
+                <a href='{{ url_for('ai.models') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-brain mr-2'></i>AI模型管理</a>
+                <a href='{{ url_for('main.ai_analysis_reports') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-file-alt mr-2'></i>AI分析与报告</a>
+                <a href='{{ url_for('main.ai_dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5' target='_blank'><i class='fas fa-chart-line mr-2'></i>AI数智大屏</a>
+            </nav>
+            <!-- 用户区域 -->
+            <div class='flex items-center space-x-4'>
+                <button class='p-2 rounded-full hover:bg-white/10 transition-all relative'>
+                    <i class='fas fa-bell text-gray-300'></i>
+                    <span class='absolute top-1 right-1 w-2 h-2 bg-danger rounded-full'></span>
+                </button>
+                <div class='flex items-center space-x-3 cursor-pointer group'>
+                    <div class='w-9 h-9 rounded-full overflow-hidden border-2 border-primary/50'>
+                        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-full h-full object-cover'/>
+                    </div>
+                    <div class='hidden md:block'>
+                        <p class='text-sm font-medium'>管理员</p>
+                        <p class='text-xs text-gray-400'>admin@dataai.com</p>
+                    </div>
+                    <a href='{{ url_for('main.logout') }}' class='fas fa-sign-out-alt text-xs text-gray-400 group-hover:text-white transition-all'></a>
+                </div>
+                <button class='md:hidden p-2 rounded-lg hover:bg-white/10 transition-all' id='mobile-menu-button'>
+                    <i class='fas fa-bars text-gray-300'></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- 移动端导航菜单 -->
+    <div class='md:hidden hidden bg-dark-light/95 backdrop-blur-md border-t border-primary/20' id='mobile-menu'>
+        <div class='container mx-auto px-4 py-3 space-y-1'>
+            <a href='{{ url_for('main.dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-tachometer-alt mr-2'></i>后台主页</a>
+            <a href='{{ url_for('main.collection_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-database mr-2'></i>采集管理</a>
+            <a href='{{ url_for('main.crawler_management') }}' class='block px-4 py-3 rounded-md text-primary border border-primary/30 bg-primary/10 font-medium'><i class='fas fa-spider mr-2'></i>爬虫管理</a>
+            <a href='{{ url_for('main.data_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-table mr-2'></i>数据管理</a>
+            <a href='{{ url_for('main.deep_collection') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-search-plus mr-2'></i>深采管理</a>
+            <a href='{{ url_for('ai.models') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-brain mr-2'></i>AI模型管理</a>
+            <a href='{{ url_for('main.ai_analysis_reports') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-file-alt mr-2'></i>AI分析与报告</a>
+            <a href='{{ url_for('main.ai_dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-chart-line mr-2'></i>AI数智大屏</a>
+            <a href='{{ url_for('main.logout') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-sign-out-alt mr-2'></i>退出登录</a>
+        </div>
+    </div>
+</header>
+
+<!-- 主内容区域 -->
+<main class='flex-1 container mx-auto px-4 py-6'>
+    <div class='space-y-8'>
+        <!-- 页面标题 -->
+        <div class='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+            <div>
+                <h2 class='text-[clamp(1.5rem,3vw,2.5rem)] font-bold bg-gradient-to-r from-white to-gray-300 text-gradient'>爬虫管理</h2>
+                <p class='text-gray-400 mt-1'>管理爬虫配置和爬虫运行状态</p>
+            </div>
+            <div class='flex flex-wrap gap-3'>
+                <button class='px-4 py-2 bg-dark-light border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-800/50 transition-all'>
+                    <i class='fas fa-download text-secondary'></i>
+                    <span>导出配置</span>
+                </button>
+                <button class='px-4 py-2 bg-primary rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-all pulse-animation'>
+                    <i class='fas fa-plus'></i>
+                    <span>新建爬虫配置</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 爬虫状态概览 -->
+        <div class='grid grid-cols-1 md:grid-cols-3 gap-6'>
+            <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+                <div class='flex items-start justify-between'>
+                    <div>
+                        <p class='text-gray-400 text-sm'>总爬虫数</p>
+                        <h3 class='text-3xl font-bold mt-1'>32</h3>
+                    </div>
+                    <div class='w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary'>
+                        <i class='fas fa-spider text-xl'></i>
+                    </div>
+                </div>
+            </div>
+            <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+                <div class='flex items-start justify-between'>
+                    <div>
+                        <p class='text-gray-400 text-sm'>运行中</p>
+                        <h3 class='text-3xl font-bold mt-1 text-success'>28</h3>
+                    </div>
+                    <div class='w-12 h-12 rounded-lg bg-success/20 flex items-center justify-center text-success'>
+                        <i class='fas fa-play-circle text-xl'></i>
+                    </div>
+                </div>
+            </div>
+            <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+                <div class='flex items-start justify-between'>
+                    <div>
+                        <p class='text-gray-400 text-sm'>已停止</p>
+                        <h3 class='text-3xl font-bold mt-1 text-danger'>4</h3>
+                    </div>
+                    <div class='w-12 h-12 rounded-lg bg-danger/20 flex items-center justify-center text-danger'>
+                        <i class='fas fa-stop-circle text-xl'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 爬虫配置列表 -->
+        <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+            <div class='flex items-center justify-between mb-6'>
+                <h3 class='font-semibold text-lg'>爬虫配置列表</h3>
+                <div class='flex items-center gap-3'>
+                    <div class='relative w-64'>
+                        <input type='text' id='search-input' placeholder='搜索爬虫配置...' class='w-full px-4 py-2 bg-dark-light border border-gray-700 rounded-lg pl-10 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all'>
+                        <i class='fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'></i>
+                    </div>
+                    <button id='add-config-btn' class='px-4 py-2 bg-primary rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-all'>
+                        <i class='fas fa-plus'></i>
+                        <span>新建配置</span>
+                    </button>
+                </div>
+            </div>
+            <div class='overflow-x-auto'>
+                <table class='w-full min-w-[900px]' id='crawler-configs-table'>
+                    <thead>
+                        <tr class='border-b border-gray-800'>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>爬虫名称</th>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>基础URL</th>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>请求方式</th>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>采集间隔</th>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>状态</th>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>创建时间</th>
+                            <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id='crawler-configs-list'>
+                        <!-- 动态加载内容 -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- 分页 -->
+            <div class='flex items-center justify-between mt-6'>
+                <div class='text-sm text-gray-400' id='pagination-info'>显示第 0-0 条，共 0 条记录</div>
+                <div class='flex gap-1' id='pagination-controls'>
+                    <!-- 动态加载分页 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 爬虫源配置表单 -->
+        <div id='config-form-modal' class='fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center'>
+            <div class='bg-dark-light rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto'>
+                <div class='flex items-center justify-between mb-6'>
+                    <h3 class='font-semibold text-xl' id='form-title'>新建爬虫源配置</h3>
+                    <button id='close-form-btn' class='p-2 rounded-full hover:bg-white/10 transition-all'>
+                        <i class='fas fa-times text-gray-300'></i>
+                    </button>
+                </div>
+                <form id='crawler-config-form'>
+                    <input type='hidden' id='config-id'>
+                    <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        <div class='space-y-2'>
+                            <label for='config-name' class='block text-sm font-medium text-gray-300'>爬虫源名称 *</label>
+                            <input type='text' id='config-name' class='w-full px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' required placeholder='支持中文与英文，1-50字符'>
+                        </div>
+                        <div class='space-y-2'>
+                            <label for='config-url' class='block text-sm font-medium text-gray-300'>目标网站基础URL *</label>
+                            <input type='url' id='config-url' class='w-full px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' required placeholder='https://example.com'>
+                        </div>
+                        <div class='space-y-2'>
+                            <label for='config-method' class='block text-sm font-medium text-gray-300'>请求方式 *</label>
+                            <select id='config-method' class='w-full px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' required>
+                                <option value='GET'>GET</option>
+                                <option value='POST'>POST</option>
+                                <option value='PUT'>PUT</option>
+                                <option value='DELETE'>DELETE</option>
+                                <option value='PATCH'>PATCH</option>
+                            </select>
+                        </div>
+                        <div class='space-y-2'>
+                            <label for='config-interval' class='block text-sm font-medium text-gray-300'>采集间隔 (秒)</label>
+                            <input type='number' id='config-interval' class='w-full px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' min='1' value='3600'>
+                        </div>
+                        <div class='space-y-2'>
+                            <label for='config-source-type' class='block text-sm font-medium text-gray-300'>数据源类型</label>
+                            <input type='text' id='config-source-type' class='w-full px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='如：website, api, rss等'>
+                        </div>
+                        <div class='space-y-2'>
+                            <label for='config-enabled' class='block text-sm font-medium text-gray-300'>启用状态</label>
+                            <div class='flex items-center gap-2'>
+                                <input type='checkbox' id='config-enabled' class='w-4 h-4 text-primary rounded focus:ring-primary/50 transition-all' checked>
+                                <span class='text-sm text-gray-300'>启用</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 请求参数配置 -->
+                    <div class='mt-6 space-y-4'>
+                        <div>
+                            <h4 class='font-medium text-gray-200 mb-3'>请求参数配置</h4>
+                            <div id='request-params-container' class='space-y-3'>
+                                <div class='flex gap-2 items-center param-row'>
+                                    <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='参数名'>
+                                    <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='参数值'>
+                                    <button type='button' class='remove-param-btn p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-all text-gray-300'>
+                                        <i class='fas fa-times'></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type='button' id='add-param-btn' class='mt-2 px-3 py-1 bg-gray-700 rounded-lg text-sm hover:bg-gray-600 transition-all flex items-center gap-1'>
+                                <i class='fas fa-plus'></i>
+                                <span>添加参数</span>
+                            </button>
+                        </div>
+                        
+                        <!-- 请求头信息 -->
+                        <div>
+                            <h4 class='font-medium text-gray-200 mb-3'>请求头信息</h4>
+                            <div id='headers-container' class='space-y-3'>
+                                <div class='flex gap-2 items-center header-row'>
+                                    <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='头名称'>
+                                    <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='头值'>
+                                    <button type='button' class='remove-header-btn p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-all text-gray-300'>
+                                        <i class='fas fa-times'></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type='button' id='add-header-btn' class='mt-2 px-3 py-1 bg-gray-700 rounded-lg text-sm hover:bg-gray-600 transition-all flex items-center gap-1'>
+                                <i class='fas fa-plus'></i>
+                                <span>添加请求头</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 表单操作按钮 -->
+                    <div class='mt-8 flex justify-end gap-3'>
+                        <button type='button' id='cancel-form-btn' class='px-4 py-2 bg-dark-light border border-gray-700 rounded-lg hover:bg-gray-800/50 transition-all'>取消</button>
+                        <button type='submit' class='px-4 py-2 bg-primary rounded-lg hover:bg-primary/90 transition-all'>保存配置</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 爬虫性能监控 -->
+        <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+            <div class='flex items-center justify-between mb-6'>
+                <h3 class='font-semibold text-lg'>爬虫性能监控</h3>
+                <div class='flex space-x-2'>
+                    <button class='px-3 py-1 text-xs bg-primary/20 text-primary rounded-md'>实时</button>
+                    <button class='px-3 py-1 text-xs bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700/50 transition-all'>今日</button>
+                    <button class='px-3 py-1 text-xs bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700/50 transition-all'>本周</button>
+                </div>
+            </div>
+            <div class='h-[300px]' id='crawler-performance-chart'></div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 移动端菜单切换
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // 初始化爬虫性能监控图表
+    window.onload = function() {
+        const chart = echarts.init(document.getElementById('crawler-performance-chart'));
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(29, 33, 41, 0.8)',
+                borderColor: 'rgba(22, 93, 255, 0.3)',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            legend: {
+                data: ['爬取速度', '成功率', '错误率'],
+                textStyle: {
+                    color: '#86909C'
+                },
+                top: 0
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+                axisLine: {
+                    lineStyle: {
+                        color: '#374151'
+                    }
+                },
+                axisLabel: {
+                    color: '#86909C'
+                }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '速度',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#165DFF'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#86909C'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#374151',
+                            type: 'dashed'
+                        }
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '百分比',
+                    max: 100,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#00B42A'
+                        }
+                    },
+                    axisLabel: {
+                        formatter: '{value}%',
+                        color: '#86909C'
+                    },
+                    splitLine: {
+                        show: false
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '爬取速度',
+                    type: 'line',
+                    data: [120, 132, 101, 134, 90, 230, 210],
+                    smooth: true,
+                    lineStyle: {
+                        color: '#165DFF',
+                        width: 3
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(22, 93, 255, 0.3)' },
+                            { offset: 1, color: 'rgba(22, 93, 255, 0.1)' }
+                        ])
+                    },
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    itemStyle: {
+                        color: '#165DFF'
+                    }
+                },
+                {
+                    name: '成功率',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: [95, 98, 97, 96, 99, 97, 98],
+                    smooth: true,
+                    lineStyle: {
+                        color: '#00B42A',
+                        width: 3
+                    },
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    itemStyle: {
+                        color: '#00B42A'
+                    }
+                },
+                {
+                    name: '错误率',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: [5, 2, 3, 4, 1, 3, 2],
+                    smooth: true,
+                    lineStyle: {
+                        color: '#F53F3F',
+                        width: 3
+                    },
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    itemStyle: {
+                        color: '#F53F3F'
+                    }
+                }
+            ]
+        };
+        chart.setOption(option);
+        
+        // 页面加载时加载爬虫配置
+        loadCrawlerConfigs();
+    };
+    
+    // 动态加载爬虫配置
+    async function loadCrawlerConfigs() {
+        try {
+            const response = await fetch('/api/crawler/config', {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                renderCrawlerConfigs(data.configs);
+                updatePaginationInfo(data.configs.length);
+            } else {
+                showMessage('加载爬虫配置失败: ' + (data.error || '未知错误'), 'error');
+            }
+        } catch (error) {
+            showMessage('加载爬虫配置时发生错误: ' + error.message, 'error');
+        }
+    }
+    
+    // 渲染爬虫配置列表
+    function renderCrawlerConfigs(configs) {
+        const tbody = document.getElementById('crawler-configs-list');
+        tbody.innerHTML = '';
+        
+        if (configs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">暂无爬虫配置</td></tr>`;
+            return;
+        }
+        
+        configs.forEach(config => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-800 hover:bg-gray-800/30 transition-all';
+            
+            // 解析JSON数据
+            const requestParams = config.request_params ? JSON.parse(config.request_params) : {};
+            const headers = config.headers ? JSON.parse(config.headers) : {};
+            
+            row.innerHTML = `
+                <td class="py-3 px-4">
+                    <div class="font-medium text-gray-200">${escapeHtml(config.name)}</div>
+                    <div class="text-xs text-gray-500">${config.source_type || 'website'}</div>
+                </td>
+                <td class="py-3 px-4">
+                    <div class="text-sm text-gray-300 truncate max-w-[200px]" title="${escapeHtml(config.url)}">${escapeHtml(config.url)}</div>
+                </td>
+                <td class="py-3 px-4">
+                    <span class="inline-block px-2 py-1 bg-${getMethodColor(config.request_method)} rounded-full text-xs">${config.request_method}</span>
+                </td>
+                <td class="py-3 px-4">
+                    <div class="text-sm text-gray-300">${config.crawl_interval}秒</div>
+                </td>
+                <td class="py-3 px-4">
+                    <button type="button" class="toggle-status-btn px-3 py-1 rounded-full text-xs ${config.enabled ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'}" data-id="${config.id}" data-enabled="${config.enabled}">
+                        ${config.enabled ? '启用' : '停用'}
+                    </button>
+                </td>
+                <td class="py-3 px-4">
+                    <div class="text-sm text-gray-400">${formatDate(config.created_at)}</div>
+                </td>
+                <td class="py-3 px-4">
+                    <div class="flex gap-2">
+                        <button type="button" class="edit-config-btn p-1.5 rounded-full bg-primary/20 hover:bg-primary/30 text-primary transition-all" data-id="${config.id}" title="编辑">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button type="button" class="delete-config-btn p-1.5 rounded-full bg-danger/20 hover:bg-danger/30 text-danger transition-all" data-id="${config.id}" title="删除">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                        <button type="button" class="view-details-btn p-1.5 rounded-full bg-secondary/20 hover:bg-secondary/30 text-secondary transition-all" data-id="${config.id}" title="查看详情">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+        
+        // 绑定事件
+        bindEventListeners();
+    }
+    
+    // 绑定事件监听器
+    function bindEventListeners() {
+        // 编辑按钮事件
+        document.querySelectorAll('.edit-config-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const configId = this.getAttribute('data-id');
+                loadConfigForEdit(configId);
+            });
+        });
+        
+        // 删除按钮事件
+        document.querySelectorAll('.delete-config-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const configId = this.getAttribute('data-id');
+                deleteConfig(configId);
+            });
+        });
+        
+        // 启用/停用按钮事件
+        document.querySelectorAll('.toggle-status-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const configId = this.getAttribute('data-id');
+                const enabled = this.getAttribute('data-enabled') === 'true';
+                toggleConfigStatus(configId, !enabled);
+            });
+        });
+    }
+    
+    // 加载配置用于编辑
+    async function loadConfigForEdit(configId) {
+        try {
+            const response = await fetch(`/api/crawler/config/${configId}`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                populateForm(data.config);
+                openForm('edit');
+            } else {
+                showMessage('加载配置失败: ' + (data.error || '未知错误'), 'error');
+            }
+        } catch (error) {
+            showMessage('加载配置时发生错误: ' + error.message, 'error');
+        }
+    }
+    
+    // 填充表单数据
+    function populateForm(config) {
+        document.getElementById('config-id').value = config.id;
+        document.getElementById('config-name').value = config.name;
+        document.getElementById('config-url').value = config.url;
+        document.getElementById('config-method').value = config.request_method;
+        document.getElementById('config-interval').value = config.crawl_interval;
+        document.getElementById('config-source-type').value = config.source_type || '';
+        document.getElementById('config-enabled').checked = config.enabled;
+        
+        // 清空现有参数
+        const paramsContainer = document.getElementById('request-params-container');
+        paramsContainer.innerHTML = '';
+        
+        // 填充请求参数
+        const requestParams = config.request_params ? JSON.parse(config.request_params) : {};
+        if (Object.keys(requestParams).length === 0) {
+            addParamRow();
+        } else {
+            Object.entries(requestParams).forEach(([key, value]) => {
+                addParamRow(key, value);
+            });
+        }
+        
+        // 清空现有请求头
+        const headersContainer = document.getElementById('headers-container');
+        headersContainer.innerHTML = '';
+        
+        // 填充请求头
+        const headers = config.headers ? JSON.parse(config.headers) : {};
+        if (Object.keys(headers).length === 0) {
+            addHeaderRow();
+        } else {
+            Object.entries(headers).forEach(([key, value]) => {
+                addHeaderRow(key, value);
+            });
+        }
+    }
+    
+    // 打开表单
+    function openForm(type = 'create') {
+        const modal = document.getElementById('config-form-modal');
+        const title = document.getElementById('form-title');
+        const form = document.getElementById('crawler-config-form');
+        
+        if (type === 'create') {
+            title.textContent = '新建爬虫源配置';
+            form.reset();
+            document.getElementById('config-id').value = '';
+            
+            // 重置参数和请求头
+            const paramsContainer = document.getElementById('request-params-container');
+            paramsContainer.innerHTML = '';
+            addParamRow();
+            
+            const headersContainer = document.getElementById('headers-container');
+            headersContainer.innerHTML = '';
+            addHeaderRow();
+        } else {
+            title.textContent = '编辑爬虫源配置';
+        }
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    
+    // 关闭表单
+    function closeForm() {
+        const modal = document.getElementById('config-form-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    
+    // 表单提交
+    document.getElementById('crawler-config-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const configId = document.getElementById('config-id').value;
+        
+        // 收集请求参数
+        const requestParams = {};
+        document.querySelectorAll('#request-params-container .param-row').forEach(row => {
+            const keyInput = row.querySelector('input:first-child');
+            const valueInput = row.querySelector('input:nth-child(2)');
+            const key = keyInput.value.trim();
+            const value = valueInput.value.trim();
+            if (key) {
+                requestParams[key] = value;
+            }
+        });
+        
+        // 收集请求头
+        const headers = {};
+        document.querySelectorAll('#headers-container .header-row').forEach(row => {
+            const keyInput = row.querySelector('input:first-child');
+            const valueInput = row.querySelector('input:nth-child(2)');
+            const key = keyInput.value.trim();
+            const value = valueInput.value.trim();
+            if (key) {
+                headers[key] = value;
+            }
+        });
+        
+        const data = {
+            name: document.getElementById('config-name').value.trim(),
+            url: document.getElementById('config-url').value.trim(),
+            request_method: document.getElementById('config-method').value,
+            crawl_interval: parseInt(document.getElementById('config-interval').value),
+            source_type: document.getElementById('config-source-type').value.trim() || 'website',
+            enabled: document.getElementById('config-enabled').checked,
+            request_params: JSON.stringify(requestParams),
+            headers: JSON.stringify(headers)
+        };
+        
+        try {
+            const url = configId ? `/api/crawler/config/${configId}` : '/api/crawler/config';
+            const method = configId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage(configId ? '配置更新成功' : '配置创建成功', 'success');
+                closeForm();
+                loadCrawlerConfigs();
+            } else {
+                showMessage((configId ? '更新' : '创建') + '配置失败: ' + (result.error || '未知错误'), 'error');
+            }
+        } catch (error) {
+            showMessage((configId ? '更新' : '创建') + '配置时发生错误: ' + error.message, 'error');
+        }
+    });
+    
+    // 删除配置
+    async function deleteConfig(configId) {
+        if (!confirm('确定要删除这个爬虫配置吗？此操作不可恢复。')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/crawler/config/${configId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage('配置删除成功', 'success');
+                loadCrawlerConfigs();
+            } else {
+                showMessage('删除配置失败: ' + (result.error || '未知错误'), 'error');
+            }
+        } catch (error) {
+            showMessage('删除配置时发生错误: ' + error.message, 'error');
+        }
+    }
+    
+    // 切换配置状态
+    async function toggleConfigStatus(configId, enabled) {
+        try {
+            const response = await fetch(`/api/crawler/config/${configId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ enabled: enabled })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage('配置状态更新成功', 'success');
+                loadCrawlerConfigs();
+            } else {
+                showMessage('更新配置状态失败: ' + (result.error || '未知错误'), 'error');
+            }
+        } catch (error) {
+            showMessage('更新配置状态时发生错误: ' + error.message, 'error');
+        }
+    }
+    
+    // 添加请求参数行
+    function addParamRow(key = '', value = '') {
+        const container = document.getElementById('request-params-container');
+        const row = document.createElement('div');
+        row.className = 'flex gap-2 items-center param-row';
+        
+        row.innerHTML = `
+            <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='参数名' value='${escapeHtml(key)}'>
+            <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='参数值' value='${escapeHtml(value)}'>
+            <button type='button' class='remove-param-btn p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-all text-gray-300'>
+                <i class='fas fa-times'></i>
+            </button>
+        `;
+        
+        container.appendChild(row);
+        
+        // 绑定删除事件
+        row.querySelector('.remove-param-btn').addEventListener('click', function() {
+            if (container.children.length > 1) {
+                row.remove();
+            }
+        });
+    }
+    
+    // 添加请求头行
+    function addHeaderRow(key = '', value = '') {
+        const container = document.getElementById('headers-container');
+        const row = document.createElement('div');
+        row.className = 'flex gap-2 items-center header-row';
+        
+        row.innerHTML = `
+            <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='头名称' value='${escapeHtml(key)}'>
+            <input type='text' class='flex-1 px-4 py-2 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all' placeholder='头值' value='${escapeHtml(value)}'>
+            <button type='button' class='remove-header-btn p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-all text-gray-300'>
+                <i class='fas fa-times'></i>
+            </button>
+        `;
+        
+        container.appendChild(row);
+        
+        // 绑定删除事件
+        row.querySelector('.remove-header-btn').addEventListener('click', function() {
+            if (container.children.length > 1) {
+                row.remove();
+            }
+        });
+    }
+    
+    // 工具函数
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    function getMethodColor(method) {
+        const colors = {
+            GET: 'blue/20 text-blue',
+            POST: 'green/20 text-green',
+            PUT: 'yellow/20 text-yellow',
+            DELETE: 'red/20 text-red',
+            PATCH: 'purple/20 text-purple'
+        };
+        return colors[method] || 'gray/20 text-gray';
+    }
+    
+    function showMessage(message, type = 'info') {
+        // 简单的消息提示，实际项目中可以使用更完善的组件
+        const existingMessage = document.getElementById('message-toast');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.id = 'message-toast';
+        toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 text-sm ${getToastColor(type)}`;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+    
+    function getToastColor(type) {
+        const colors = {
+            success: 'bg-success/90 text-white',
+            error: 'bg-danger/90 text-white',
+            warning: 'bg-yellow-500/90 text-white',
+            info: 'bg-primary/90 text-white'
+        };
+        return colors[type] || colors.info;
+    }
+    
+    function updatePaginationInfo(total) {
+        const info = document.getElementById('pagination-info');
+        info.textContent = `显示第 1-${total} 条，共 ${total} 条记录`;
+    }
+    
+    // 事件监听器
+    document.getElementById('add-param-btn').addEventListener('click', function() {
+        addParamRow();
+    });
+    
+    document.getElementById('add-header-btn').addEventListener('click', function() {
+        addHeaderRow();
+    });
+    
+    document.getElementById('add-config-btn').addEventListener('click', function() {
+        openForm('create');
+    });
+    
+    document.getElementById('close-form-btn').addEventListener('click', closeForm);
+    
+    document.getElementById('cancel-form-btn').addEventListener('click', closeForm);
+    
+    // 点击模态框外部关闭
+    document.getElementById('config-form-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeForm();
+        }
+    });
+    
+    // 初始参数行删除事件
+    document.addEventListener('DOMContentLoaded', function() {
+        // 请求参数
+        document.querySelectorAll('.remove-param-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const container = document.getElementById('request-params-container');
+                if (container.children.length > 1) {
+                    this.closest('.param-row').remove();
+                }
+            });
+        });
+        
+        // 请求头
+        document.querySelectorAll('.remove-header-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const container = document.getElementById('headers-container');
+                if (container.children.length > 1) {
+                    this.closest('.header-row').remove();
+                }
+            });
+        });
+    });
+    
+    // 搜索功能
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#crawler-configs-list tr');
+        
+        rows.forEach(row => {
+            const name = row.querySelector('td:nth-child(1) .font-medium').textContent.toLowerCase();
+            const url = row.querySelector('td:nth-child(2) .text-sm').textContent.toLowerCase();
+            const method = row.querySelector('td:nth-child(3) span').textContent.toLowerCase();
+            
+            if (name.includes(searchTerm) || url.includes(searchTerm) || method.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

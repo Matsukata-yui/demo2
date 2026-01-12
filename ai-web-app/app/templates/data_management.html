@@ -1,0 +1,915 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- 导航栏 -->
+    <nav class="glass-effect rounded-lg p-4 mb-8">
+        <ul class="flex flex-wrap gap-2 md:gap-4">
+            <li><a href="{{ url_for('main.dashboard') }}" class="text-gray-400 hover:text-blue-400 transition-colors">系统首页</a></li>
+            <li><a href="{{ url_for('main.collection_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">采集管理</a></li>
+            <li><a href="{{ url_for('main.crawler_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">爬虫管理</a></li>
+            <li><a href="{{ url_for('main.data_management') }}" class="text-blue-400 font-bold">数据管理</a></li>
+            <li><a href="{{ url_for('main.deep_collection') }}" class="text-gray-400 hover:text-blue-400 transition-colors">深采管理</a></li>
+            <li><a href="{{ url_for('ai.models') }}" class="text-gray-400 hover:text-blue-400 transition-colors">AI模型管理</a></li>
+            <li><a href="{{ url_for('main.ai_analysis_reports') }}" class="text-gray-400 hover:text-blue-400 transition-colors">AI分析报告</a></li>
+            <li><a href="{{ url_for('main.ai_dashboard') }}" class="text-gray-400 hover:text-blue-400 transition-colors" target="_blank">AI数智大屏</a></li>
+        </ul>
+    </nav>
+
+    <!-- 页面标题 -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2 neon-text-blue">数据管理</h1>
+        <p class="text-gray-400">管理和维护采集到的数据</p>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex flex-wrap gap-4 mb-8">
+        <button class="btn-blue">导出数据</button>
+        <button class="btn-blue">清理数据</button>
+        <button class="btn-blue">数据备份</button>
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-blue-400 mb-2">总数据量</h3>
+            <p class="text-4xl font-bold text-white" id="total-data-count">0</p>
+            <p class="text-gray-500 text-sm mt-2">条数据</p>
+        </div>
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-green-400 mb-2">今日新增</h3>
+            <p class="text-4xl font-bold text-white">0</p>
+            <p class="text-gray-500 text-sm mt-2">条数据</p>
+        </div>
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-yellow-400 mb-2">已处理</h3>
+            <p class="text-4xl font-bold text-white">0</p>
+            <p class="text-gray-500 text-sm mt-2">条数据</p>
+        </div>
+        <div class="glass-effect rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-red-400 mb-2">待处理</h3>
+            <p class="text-4xl font-bold text-white">0</p>
+            <p class="text-gray-500 text-sm mt-2">条数据</p>
+        </div>
+    </div>
+
+    <!-- 搜索和批量操作 -->
+    <div class="glass-effect rounded-lg p-6 mb-8">
+        <div class="flex flex-wrap justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-white">数据列表</h2>
+            <div class="flex flex-wrap gap-4">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="搜索数据..." class="input-field pr-10">
+                    <button id="search-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <select id="per-page-select" class="input-field">
+                    <option value="10">10条/页</option>
+                    <option value="20">20条/页</option>
+                    <option value="50">50条/页</option>
+                    <option value="100">100条/页</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 批量操作工具栏 -->
+        <div id="batch-toolbar" class="flex flex-wrap gap-4 mb-6 hidden">
+            <button id="select-all-button" class="btn-sm btn-gray">全选</button>
+            <button id="batch-delete-button" class="btn-sm btn-red">批量删除</button>
+            <button id="batch-deep-collect-button" class="btn-sm btn-blue">批量AI深度采集</button>
+            <span id="selected-count" class="text-gray-400 self-center">已选择 0 条数据</span>
+        </div>
+
+        <!-- 数据列表 -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-white">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="py-3 px-4 text-left w-12">
+                            <input type="checkbox" id="header-checkbox" class="rounded border-gray-600 text-blue-500 focus:ring-blue-500">
+                        </th>
+                        <th class="py-3 px-4 text-left w-16">ID</th>
+                        <th class="py-3 px-4 text-left">标题</th>
+                        <th class="py-3 px-4 text-left">数据源</th>
+                        <th class="py-3 px-4 text-left">采集时间</th>
+                        <th class="py-3 px-4 text-left">深度采集</th>
+                        <th class="py-3 px-4 text-left">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="data-list">
+                    <!-- 数据将通过JavaScript动态加载 -->
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-gray-400">
+                            <div class="flex flex-col items-center">
+                                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+                                <p>加载中...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <div class="flex flex-wrap justify-between items-center mt-6">
+            <div class="text-gray-400 text-sm" id="pagination-info">
+                显示 0-0 条，共 0 条
+            </div>
+            <div class="pagination" id="pagination-controls">
+                <button class="pagination-btn" id="prev-page" disabled>上一页</button>
+                <span id="page-numbers"></span>
+                <button class="pagination-btn" id="next-page" disabled>下一页</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 数据管理功能
+    document.addEventListener('DOMContentLoaded', function() {
+        // 全局变量
+        let currentPage = 1;
+        let perPage = 10;
+        let searchKeyword = '';
+        let selectedIds = [];
+        let totalData = 0;
+        let totalPages = 0;
+        
+        // DOM元素
+        const dataList = document.getElementById('data-list');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const perPageSelect = document.getElementById('per-page-select');
+        const prevPageButton = document.getElementById('prev-page');
+        const nextPageButton = document.getElementById('next-page');
+        const pageNumbers = document.getElementById('page-numbers');
+        const paginationInfo = document.getElementById('pagination-info');
+        const totalDataCount = document.getElementById('total-data-count');
+        const batchToolbar = document.getElementById('batch-toolbar');
+        const selectAllButton = document.getElementById('select-all-button');
+        const batchDeleteButton = document.getElementById('batch-delete-button');
+        const batchDeepCollectButton = document.getElementById('batch-deep-collect-button');
+        const selectedCount = document.getElementById('selected-count');
+        const headerCheckbox = document.getElementById('header-checkbox');
+        
+        // 加载数据列表
+        function loadDataList() {
+            // 显示加载状态
+            dataList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="py-10 text-center text-gray-400">
+                        <div class="flex flex-col items-center">
+                            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+                            <p>加载中...</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            // 构建请求URL
+            let url = `/api/data/list?page=${currentPage}&per_page=${perPage}`;
+            if (searchKeyword) {
+                url += `&search=${encodeURIComponent(searchKeyword)}`;
+            }
+            
+            // 发送请求
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 更新数据列表
+                        renderDataList(data.data);
+                        
+                        // 更新分页信息
+                        totalData = data.total;
+                        totalPages = data.pages;
+                        
+                        // 更新UI
+                        updatePagination();
+                        updateBatchToolbar();
+                        totalDataCount.textContent = totalData;
+                        
+                        // 更新分页信息
+                        const start = (currentPage - 1) * perPage + 1;
+                        const end = Math.min(currentPage * perPage, totalData);
+                        paginationInfo.textContent = `显示 ${start}-${end} 条，共 ${totalData} 条`;
+                    } else {
+                        // 显示错误信息
+                        dataList.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="py-10 text-center text-red-400">
+                                    <p>加载失败: ${data.error}</p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    // 显示错误信息
+                    dataList.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="py-10 text-center text-red-400">
+                                <p>加载失败: ${error.message}</p>
+                            </tr>
+                        `;
+                });
+        }
+        
+        // 渲染数据列表
+        function renderDataList(data) {
+            if (data.length === 0) {
+                dataList.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-gray-400">
+                            <p>暂无数据</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // 渲染数据
+            dataList.innerHTML = data.map(item => `
+                <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors">
+                    <td class="py-3 px-4">
+                        <input type="checkbox" class="data-checkbox rounded border-gray-600 text-blue-500 focus:ring-blue-500" value="${item.id}" ${selectedIds.includes(item.id) ? 'checked' : ''}>
+                    </td>
+                    <td class="py-3 px-4">${item.id}</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                                <img src="${item.image || 'https://picsum.photos/seed/default/100/100'}" alt="封面" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <a href="${item.url}" target="_blank" class="hover:text-blue-400 transition-colors line-clamp-2">${item.title}</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">${item.source || '未知'}</td>
+                    <td class="py-3 px-4">${item.timestamp || '未知'}</td>
+                    <td class="py-3 px-4">
+                        ${item.deep_collected ? `
+                            <a href="/deep-collection?collected_data_id=${item.id}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-700 text-green-300 hover:bg-green-600 cursor-pointer" title="点击查看深度采集详情">
+                                <i class="fas fa-check-circle mr-1"></i>已采集
+                            </a>
+                        ` : `
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300">
+                                未采集
+                            </span>
+                        `}
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="btn-sm btn-red" onclick="deleteData(${item.id})"><i class="fas fa-trash-alt"></i></button>
+                            <button class="btn-sm btn-blue" onclick="deepCollectData(${item.id})"><i class="fas fa-robot"></i> AI深度采集</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // 添加复选框事件监听
+            document.querySelectorAll('.data-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const id = parseInt(this.value);
+                    if (this.checked) {
+                        if (!selectedIds.includes(id)) {
+                            selectedIds.push(id);
+                        }
+                    } else {
+                        selectedIds = selectedIds.filter(itemId => itemId !== id);
+                    }
+                    updateBatchToolbar();
+                    updateHeaderCheckbox();
+                });
+            });
+        }
+        
+        // 更新分页控件
+        function updatePagination() {
+            // 更新上一页/下一页按钮状态
+            prevPageButton.disabled = currentPage === 1;
+            nextPageButton.disabled = currentPage === totalPages || totalPages === 0;
+            
+            // 生成页码按钮
+            const pageButtons = [];
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // 调整起始页码
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // 添加页码按钮
+            for (let i = startPage; i <= endPage; i++) {
+                pageButtons.push(`
+                    <button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">
+                        ${i}
+                    </button>
+                `);
+            }
+            
+            // 更新页码按钮
+            pageNumbers.innerHTML = pageButtons.join('');
+            
+            // 添加页码按钮事件监听
+            document.querySelectorAll('#page-numbers .pagination-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const page = parseInt(this.dataset.page);
+                    if (page !== currentPage) {
+                        currentPage = page;
+                        loadDataList();
+                    }
+                });
+            });
+        }
+        
+        // 更新批量操作工具栏
+        function updateBatchToolbar() {
+            if (selectedIds.length > 0) {
+                batchToolbar.classList.remove('hidden');
+                selectedCount.textContent = `已选择 ${selectedIds.length} 条数据`;
+            } else {
+                batchToolbar.classList.add('hidden');
+            }
+        }
+        
+        // 更新表头复选框状态
+        function updateHeaderCheckbox() {
+            const checkboxes = document.querySelectorAll('.data-checkbox');
+            if (checkboxes.length > 0) {
+                const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                headerCheckbox.checked = allChecked;
+                headerCheckbox.indeterminate = selectedIds.length > 0 && !allChecked;
+            } else {
+                headerCheckbox.checked = false;
+                headerCheckbox.indeterminate = false;
+            }
+        }
+        
+        // 删除单条数据
+        window.deleteData = function(id) {
+            if (confirm('确定要删除这条数据吗？')) {
+                fetch(`/api/data/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 显示成功消息
+                        showMessage('删除成功', 'success');
+                        
+                        // 从选中列表中移除
+                        selectedIds = selectedIds.filter(itemId => itemId !== id);
+                        
+                        // 重新加载数据
+                        loadDataList();
+                    } else {
+                        // 显示错误消息
+                        showMessage(`删除失败: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    // 显示错误消息
+                    showMessage(`删除失败: ${error.message}`, 'error');
+                });
+            }
+        };
+        
+        // 获取可用模型列表
+        async function getAvailableModels() {
+            try {
+                const response = await fetch('/ai/api/models', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    return data.models.filter(m => m.enabled);
+                }
+                return [];
+            } catch (error) {
+                console.error('获取模型列表失败:', error);
+                return [];
+            }
+        }
+        
+        // AI深度采集单条数据
+        window.deepCollectData = async function(id) {
+            // 获取可用模型
+            const models = await getAvailableModels();
+            
+            // 创建模型选择弹窗
+            const modelSelectDialog = document.createElement('div');
+            modelSelectDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modelSelectDialog.innerHTML = `
+                <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-xl font-bold text-white mb-4">选择AI模型</h3>
+                    <div class="mb-4">
+                        <label class="block text-gray-400 mb-2">选择用于深度采集的AI模型（可选）</label>
+                        <select id="model-select" class="input-field w-full">
+                            <option value="">不使用AI分析</option>
+                            ${models.map(m => `<option value="${m.id}">${m.name} (${m.model_name})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-4">
+                        <button id="cancel-model-select" class="btn-sm btn-gray">取消</button>
+                        <button id="confirm-model-select" class="btn-sm btn-blue">开始采集</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modelSelectDialog);
+            
+            // 等待用户选择
+            return new Promise((resolve) => {
+                document.getElementById('cancel-model-select').addEventListener('click', function() {
+                    document.body.removeChild(modelSelectDialog);
+                    resolve();
+                });
+                
+                document.getElementById('confirm-model-select').addEventListener('click', async function() {
+                    const modelId = document.getElementById('model-select').value || null;
+                    document.body.removeChild(modelSelectDialog);
+                    
+                    // 创建进度条弹窗
+                    const progressDialog = document.createElement('div');
+                    progressDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                    progressDialog.innerHTML = `
+                        <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                            <h3 class="text-xl font-bold text-white mb-4">AI深度采集</h3>
+                            <div class="mb-4">
+                                <div class="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                                    <div id="deep-collect-progress" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                                <p id="deep-collect-status" class="text-gray-400 text-sm">准备开始...</p>
+                            </div>
+                            <div class="flex justify-end">
+                                <button id="close-progress" class="btn-sm btn-gray" disabled>等待中...</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(progressDialog);
+                    
+                    // 进度更新
+                    let progress = 0;
+                    const progressBar = document.getElementById('deep-collect-progress');
+                    const statusText = document.getElementById('deep-collect-status');
+                    const closeButton = document.getElementById('close-progress');
+                    
+                    // 模拟进度更新（因为无法实时获取进度）
+                    const progressInterval = setInterval(() => {
+                        if (progress < 90) {
+                            progress += 10;
+                            progressBar.style.width = `${progress}%`;
+                            if (progress < 30) {
+                                statusText.textContent = '正在采集页面数据...';
+                            } else if (progress < 60) {
+                                statusText.textContent = '页面数据采集完成，正在处理...';
+                            } else if (progress < 80) {
+                                statusText.textContent = modelId ? '正在使用AI模型分析数据...' : '正在保存数据...';
+                            } else {
+                                statusText.textContent = '即将完成...';
+                            }
+                        }
+                    }, 500);
+                    
+                    // 执行深度采集
+                    fetch(`/api/data/deep_collect/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ model_id: modelId }),
+                        credentials: 'same-origin'
+                    })
+                    .then(response => {
+                        clearInterval(progressInterval);
+                        progress = 100;
+                        progressBar.style.width = '100%';
+                        statusText.textContent = '采集完成';
+                        closeButton.disabled = false;
+                        closeButton.textContent = '关闭';
+                        
+                        return response.json();
+                    })
+                    .then(data => {
+                        closeButton.addEventListener('click', function() {
+                            document.body.removeChild(progressDialog);
+                        });
+                        
+                        // 显示执行报告弹窗
+                        const reportDialog = document.createElement('div');
+                        reportDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        
+                        if (data.success) {
+                            reportDialog.innerHTML = `
+                                <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                                    <h3 class="text-xl font-bold text-white mb-4">深度采集执行报告</h3>
+                                    <div class="mb-4">
+                                        <p class="text-green-400 mb-2"><i class="fas fa-check-circle"></i> 采集成功</p>
+                                        <p class="text-gray-400 mb-1">标题: ${data.data.title || '无'}</p>
+                                        <p class="text-gray-400 mb-1">URL: ${data.data.url || '无'}</p>
+                                        <p class="text-gray-400 mb-1">内容长度: ${data.data.content_length || 0} 字符</p>
+                                        <p class="text-gray-400 mb-1">AI分析: ${data.data.ai_analysis ? '已执行' : '未执行'}</p>
+                                        ${data.data.model_used ? `<p class="text-gray-400 mb-1">使用模型: ${data.data.model_used}</p>` : ''}
+                                        <p class="text-gray-400 mb-1">操作: ${data.data.action === 'created' ? '新增' : '更新'}</p>
+                                    </div>
+                                    <div class="flex justify-end gap-4">
+                                        <button onclick="document.body.removeChild(this.closest('.fixed'))" class="btn-sm btn-gray">关闭</button>
+                                        <a href="/deep-collection?collected_data_id=${id}" class="btn-sm btn-blue">查看详情</a>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            reportDialog.innerHTML = `
+                                <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                                    <h3 class="text-xl font-bold text-white mb-4">深度采集执行报告</h3>
+                                    <div class="mb-4">
+                                        <p class="text-red-400 mb-2"><i class="fas fa-times-circle"></i> 采集失败</p>
+                                        <p class="text-gray-400">错误信息: ${data.error}</p>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <button onclick="document.body.removeChild(this.closest('.fixed'))" class="btn-sm btn-gray">关闭</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        document.body.appendChild(reportDialog);
+                        
+                        // 重新加载数据列表
+                        loadDataList();
+                    })
+                    .catch(error => {
+                        clearInterval(progressInterval);
+                        progress = 100;
+                        progressBar.style.width = '100%';
+                        statusText.textContent = '采集失败';
+                        closeButton.disabled = false;
+                        closeButton.textContent = '关闭';
+                        
+                        closeButton.addEventListener('click', function() {
+                            document.body.removeChild(progressDialog);
+                        });
+                        
+                        // 显示错误弹窗
+                        const errorDialog = document.createElement('div');
+                        errorDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        errorDialog.innerHTML = `
+                            <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                                <h3 class="text-xl font-bold text-white mb-4">深度采集执行报告</h3>
+                                <div class="mb-4">
+                                    <p class="text-red-400 mb-2"><i class="fas fa-times-circle"></i> 采集失败</p>
+                                    <p class="text-gray-400">错误信息: ${error.message}</p>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button onclick="document.body.removeChild(this.closest('.fixed'))" class="btn-sm btn-gray">关闭</button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(errorDialog);
+                    });
+                });
+            });
+        };
+        
+        // 批量删除
+        function batchDelete() {
+            if (selectedIds.length === 0) {
+                showMessage('请先选择要删除的数据', 'warning');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedIds.length} 条数据吗？`)) {
+                fetch('/api/data/batch_delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ data_ids: selectedIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 显示成功消息
+                        showMessage('批量删除成功', 'success');
+                        
+                        // 清空选中列表
+                        selectedIds = [];
+                        
+                        // 重新加载数据
+                        loadDataList();
+                    } else {
+                        // 显示错误消息
+                        showMessage(`批量删除失败: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    // 显示错误消息
+                    showMessage(`批量删除失败: ${error.message}`, 'error');
+                });
+            }
+        }
+        
+        // 批量AI深度采集
+        async function batchDeepCollect() {
+            if (selectedIds.length === 0) {
+                showMessage('请先选择要进行AI深度采集的数据', 'warning');
+                return;
+            }
+            
+            // 获取可用模型
+            const models = await getAvailableModels();
+            
+            // 创建模型选择弹窗
+            const modelSelectDialog = document.createElement('div');
+            modelSelectDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modelSelectDialog.innerHTML = `
+                <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-xl font-bold text-white mb-4">批量AI深度采集</h3>
+                    <div class="mb-4">
+                        <label class="block text-gray-400 mb-2">选择用于深度采集的AI模型（可选）</label>
+                        <select id="batch-model-select" class="input-field w-full">
+                            <option value="">不使用AI分析</option>
+                            ${models.map(m => `<option value="${m.id}">${m.name} (${m.model_name})</option>`).join('')}
+                        </select>
+                        <p class="text-gray-500 text-sm mt-2">将对选中的 ${selectedIds.length} 条数据进行深度采集</p>
+                    </div>
+                    <div class="flex justify-end gap-4">
+                        <button id="cancel-batch-model-select" class="btn-sm btn-gray">取消</button>
+                        <button id="confirm-batch-model-select" class="btn-sm btn-blue">开始采集</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modelSelectDialog);
+            
+            // 等待用户选择
+            document.getElementById('cancel-batch-model-select').addEventListener('click', function() {
+                document.body.removeChild(modelSelectDialog);
+            });
+            
+            document.getElementById('confirm-batch-model-select').addEventListener('click', function() {
+                const modelId = document.getElementById('batch-model-select').value || null;
+                document.body.removeChild(modelSelectDialog);
+                
+                // 创建进度条弹窗
+                const progressDialog = document.createElement('div');
+                progressDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                progressDialog.innerHTML = `
+                    <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                        <h3 class="text-xl font-bold text-white mb-4">批量AI深度采集</h3>
+                        <div class="mb-4">
+                            <div class="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                                <div id="batch-deep-collect-progress" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="batch-deep-collect-status" class="text-gray-400 text-sm">准备开始...</p>
+                        </div>
+                        <div class="flex justify-end">
+                            <button id="close-batch-progress" class="btn-sm btn-gray" disabled>等待中...</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(progressDialog);
+                
+                // 进度更新
+                let progress = 0;
+                const progressBar = document.getElementById('batch-deep-collect-progress');
+                const statusText = document.getElementById('batch-deep-collect-status');
+                const closeButton = document.getElementById('close-batch-progress');
+                
+                // 模拟进度更新
+                const progressInterval = setInterval(() => {
+                    if (progress < 90) {
+                        progress += 5;
+                        progressBar.style.width = `${progress}%`;
+                        statusText.textContent = `正在处理中... ${Math.round(progress)}%`;
+                    }
+                }, 300);
+                
+                // 执行批量深度采集
+                fetch('/api/data/batch_deep_collect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ data_ids: selectedIds, model_id: modelId }),
+                    credentials: 'same-origin'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        clearInterval(progressInterval);
+                        progress = 100;
+                        progressBar.style.width = '100%';
+                        statusText.textContent = '批量采集完成';
+                        closeButton.disabled = false;
+                        closeButton.textContent = '关闭';
+                        
+                        closeButton.addEventListener('click', function() {
+                            document.body.removeChild(progressDialog);
+                        });
+                        
+                        // 显示执行报告弹窗
+                        const reportDialog = document.createElement('div');
+                        reportDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        
+                        if (data.success) {
+                            // 统计成功和失败的数量
+                            const successCount = data.success_count || data.results.filter(item => item.success).length;
+                            const errorCount = data.error_count || data.results.filter(item => !item.success).length;
+                            
+                            reportDialog.innerHTML = `
+                                <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                                    <h3 class="text-xl font-bold text-white mb-4">批量深度采集执行报告</h3>
+                                    <div class="mb-4">
+                                        <p class="text-green-400 mb-2"><i class="fas fa-check-circle"></i> 批量采集完成</p>
+                                        <p class="text-gray-400 mb-1">总数据数: ${selectedIds.length}</p>
+                                        <p class="text-green-400 mb-1">成功数: ${successCount}</p>
+                                        <p class="text-red-400 mb-1">失败数: ${errorCount}</p>
+                                    </div>
+                                    <div class="flex justify-end gap-4">
+                                        <button onclick="document.body.removeChild(this.closest('.fixed'))" class="btn-sm btn-gray">关闭</button>
+                                        <a href="/deep-collection" class="btn-sm btn-blue">查看详情</a>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            reportDialog.innerHTML = `
+                                <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                                    <h3 class="text-xl font-bold text-white mb-4">批量深度采集执行报告</h3>
+                                    <div class="mb-4">
+                                        <p class="text-red-400 mb-2"><i class="fas fa-times-circle"></i> 采集失败</p>
+                                        <p class="text-gray-400">错误信息: ${data.error}</p>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <button onclick="document.body.removeChild(this.closest('.fixed'))" class="btn-sm btn-gray">关闭</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        document.body.appendChild(reportDialog);
+                        
+                        // 清空选中列表并重新加载数据
+                        selectedIds = [];
+                        loadDataList();
+                    })
+                    .catch(error => {
+                        clearInterval(progressInterval);
+                        progress = 100;
+                        progressBar.style.width = '100%';
+                        statusText.textContent = '批量采集失败';
+                        closeButton.disabled = false;
+                        closeButton.textContent = '关闭';
+                        
+                        closeButton.addEventListener('click', function() {
+                            document.body.removeChild(progressDialog);
+                        });
+                        
+                        // 显示错误弹窗
+                        const errorDialog = document.createElement('div');
+                        errorDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        errorDialog.innerHTML = `
+                            <div class="glass-effect rounded-lg p-6 w-full max-w-md">
+                                <h3 class="text-xl font-bold text-white mb-4">批量深度采集执行报告</h3>
+                                <div class="mb-4">
+                                    <p class="text-red-400 mb-2"><i class="fas fa-times-circle"></i> 采集失败</p>
+                                    <p class="text-gray-400">错误信息: ${error.message}</p>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button onclick="document.body.removeChild(this.closest('.fixed'))" class="btn-sm btn-gray">关闭</button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(errorDialog);
+                    });
+            });
+        }
+        
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.data-checkbox');
+            const isAllChecked = headerCheckbox.checked;
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isAllChecked;
+                const id = parseInt(checkbox.value);
+                if (isAllChecked) {
+                    if (!selectedIds.includes(id)) {
+                        selectedIds.push(id);
+                    }
+                } else {
+                    selectedIds = selectedIds.filter(itemId => itemId !== id);
+                }
+            });
+            
+            updateBatchToolbar();
+        }
+        
+        // 显示消息
+        window.showMessage = function(message, type = 'info') {
+            // 创建消息元素
+            const messageElement = document.createElement('div');
+            messageElement.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full opacity-0`;
+            
+            // 设置消息类型样式
+            switch (type) {
+                case 'success':
+                    messageElement.classList.add('bg-green-500', 'text-white');
+                    break;
+                case 'error':
+                    messageElement.classList.add('bg-red-500', 'text-white');
+                    break;
+                case 'warning':
+                    messageElement.classList.add('bg-yellow-500', 'text-white');
+                    break;
+                default:
+                    messageElement.classList.add('bg-blue-500', 'text-white');
+            }
+            
+            // 设置消息内容
+            messageElement.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(messageElement);
+            
+            // 显示消息
+            setTimeout(() => {
+                messageElement.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageElement.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    messageElement.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // 事件监听
+        
+        // 搜索按钮点击
+        searchButton.addEventListener('click', function() {
+            searchKeyword = searchInput.value.trim();
+            currentPage = 1;
+            loadDataList();
+        });
+        
+        // 搜索输入框回车
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchKeyword = this.value.trim();
+                currentPage = 1;
+                loadDataList();
+            }
+        });
+        
+        // 每页条数变化
+        perPageSelect.addEventListener('change', function() {
+            perPage = parseInt(this.value);
+            currentPage = 1;
+            loadDataList();
+        });
+        
+        // 上一页按钮点击
+        prevPageButton.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadDataList();
+            }
+        });
+        
+        // 下一页按钮点击
+        nextPageButton.addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadDataList();
+            }
+        });
+        
+        // 全选按钮点击
+        selectAllButton.addEventListener('click', function() {
+            headerCheckbox.checked = !headerCheckbox.checked;
+            toggleSelectAll();
+        });
+        
+        // 表头复选框变化
+        headerCheckbox.addEventListener('change', toggleSelectAll);
+        
+        // 批量删除按钮点击
+        batchDeleteButton.addEventListener('click', batchDelete);
+        
+        // 批量AI深度采集按钮点击
+        batchDeepCollectButton.addEventListener('click', batchDeepCollect);
+        
+        // 初始加载数据
+        loadDataList();
+    });
+</script>
+{% endblock %}

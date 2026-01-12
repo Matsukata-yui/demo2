@@ -1,0 +1,782 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <style>
+        .input-field {
+            background-color: #1a365d; /* 深蓝色背景 */
+            border: 1px solid #2a4365;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.3);
+        }
+        
+        .input-field::placeholder {
+            color: #a0aec0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- 导航栏 -->
+    <nav class="glass-effect rounded-lg p-4 mb-8">
+        <ul class="flex flex-wrap gap-2 md:gap-4">
+            <li><a href="{{ url_for('main.dashboard') }}" class="text-gray-400 hover:text-blue-400 transition-colors">系统首页</a></li>
+            <li><a href="{{ url_for('main.collection_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">采集管理</a></li>
+            <li><a href="{{ url_for('main.crawler_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">爬虫管理</a></li>
+            <li><a href="{{ url_for('main.data_management') }}" class="text-gray-400 hover:text-blue-400 transition-colors">数据管理</a></li>
+            <li><a href="{{ url_for('main.deep_collection') }}" class="text-gray-400 hover:text-blue-400 transition-colors">深采管理</a></li>
+            <li><a href="{{ url_for('ai.models') }}" class="text-blue-400 font-bold">AI模型管理</a></li>
+            <li><a href="{{ url_for('main.ai_analysis_reports') }}" class="text-gray-400 hover:text-blue-400 transition-colors">AI分析报告</a></li>
+            <li><a href="{{ url_for('main.ai_dashboard') }}" class="text-gray-400 hover:text-blue-400 transition-colors" target="_blank">AI数智大屏</a></li>
+        </ul>
+    </nav>
+
+    <!-- 页面标题 -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2 neon-text-blue">AI模型管理</h1>
+        <p class="text-gray-400">管理和配置AI大模型服务</p>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex flex-wrap gap-4 mb-8">
+        <button id="add-model-button" class="btn-blue">添加模型</button>
+        <button id="refresh-models-button" class="btn-blue">刷新列表</button>
+        <button id="stats-button" class="btn-blue">统计分析</button>
+    </div>
+
+    <!-- 模型橱窗列表 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="models-container">
+        <!-- 模型卡片将通过JavaScript动态加载 -->
+        <div class="col-span-full flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加模型弹窗 -->
+<div id="add-model-modal" class="modal hidden">
+    <div class="modal-content glass-effect rounded-lg p-6 max-w-2xl w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-white">添加模型</h3>
+            <button class="close-modal-btn text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="add-model-form">
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">模型名称</label>
+                <input type="text" name="name" class="input-field" required placeholder="请输入模型名称">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">API URL</label>
+                <input type="text" name="api_url" class="input-field" required placeholder="例如: https://api.siliconflow.cn/v1/">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">API Key</label>
+                <input type="text" name="api_key" class="input-field" required placeholder="请输入API密钥">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">模型名称</label>
+                <input type="text" name="model_name" class="input-field" required placeholder="例如: Qwen/Qwen3-Next-80B-A3B-Instruct">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">系统提示词</label>
+                <textarea name="system_prompt" class="input-field h-32" placeholder="请输入系统提示词"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="flex items-center gap-2 text-gray-400">
+                    <input type="checkbox" name="enabled" checked class="w-4 h-4 text-blue-500 rounded">
+                    <span>启用模型</span>
+                </label>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" class="close-modal-btn btn-gray">取消</button>
+                <button type="submit" class="btn-blue">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 编辑模型弹窗 -->
+<div id="edit-model-modal" class="modal hidden">
+    <div class="modal-content glass-effect rounded-lg p-6 max-w-2xl w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-white">编辑模型</h3>
+            <button class="close-modal-btn text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="edit-model-form">
+            <input type="hidden" name="id">
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">模型名称</label>
+                <input type="text" name="name" class="input-field" required placeholder="请输入模型名称">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">API URL</label>
+                <input type="text" name="api_url" class="input-field" required placeholder="例如: https://api.siliconflow.cn/v1/">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">API Key</label>
+                <input type="text" name="api_key" class="input-field" required placeholder="请输入API密钥">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">模型名称</label>
+                <input type="text" name="model_name" class="input-field" required placeholder="例如: Qwen/Qwen3-Next-80B-A3B-Instruct">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">系统提示词</label>
+                <textarea name="system_prompt" class="input-field h-32" placeholder="请输入系统提示词"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="flex items-center gap-2 text-gray-400">
+                    <input type="checkbox" name="enabled" class="w-4 h-4 text-blue-500 rounded">
+                    <span>启用模型</span>
+                </label>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" class="close-modal-btn btn-gray">取消</button>
+                <button type="submit" class="btn-blue">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 模型测试弹窗 -->
+<div id="model-test-modal" class="modal hidden">
+    <div class="modal-content glass-effect rounded-lg p-6 max-w-2xl w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-white">模型测试</h3>
+            <button class="close-modal-btn text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mb-4">
+            <p class="text-gray-400 mb-2">模型: <span id="test-model-name" class="text-blue-400">Qwen3-Next-80B</span></p>
+            <p class="text-gray-400">状态: <span id="test-model-status" class="text-green-400">连接正常</span></p>
+            <input type="hidden" id="test-model-id">
+        </div>
+        <div class="chat-container h-96 overflow-y-auto mb-4 border border-gray-700 rounded-lg p-4">
+            <div class="chat-message bot-message mb-4">
+                <div class="flex gap-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white"></i>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3 max-w-[80%]">
+                        <p class="text-white">你好！我是AI助手，有什么可以帮助你的吗？</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <input type="text" id="chat-input" class="input-field flex-1" placeholder="输入消息...">
+            <button id="send-message" class="btn-blue">发送</button>
+        </div>
+    </div>
+</div>
+
+<!-- 统计分析弹窗 -->
+<div id="stats-modal" class="modal hidden">
+    <div class="modal-content glass-effect rounded-lg p-6 max-w-4xl w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-white">统计分析</h3>
+            <button class="close-modal-btn text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="glass-effect rounded-lg p-6">
+                <h4 class="text-lg font-semibold text-blue-400 mb-2">总Token消耗</h4>
+                <p class="text-3xl font-bold text-white" id="total-tokens">0</p>
+            </div>
+            <div class="glass-effect rounded-lg p-6">
+                <h4 class="text-lg font-semibold text-blue-400 mb-2">今日消耗</h4>
+                <p class="text-3xl font-bold text-white" id="today-tokens">0</p>
+            </div>
+            <div class="glass-effect rounded-lg p-6">
+                <h4 class="text-lg font-semibold text-blue-400 mb-2">调用次数</h4>
+                <p class="text-3xl font-bold text-white" id="total-requests">0</p>
+            </div>
+        </div>
+        <div class="mb-4">
+            <h4 class="text-lg font-semibold text-white mb-2">模型使用统计</h4>
+            <div class="overflow-x-auto">
+                <table class="w-full text-white">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="py-3 px-4 text-left">模型名称</th>
+                            <th class="py-3 px-4 text-left">调用次数</th>
+                            <th class="py-3 px-4 text-left">输入Token</th>
+                            <th class="py-3 px-4 text-left">输出Token</th>
+                            <th class="py-3 px-4 text-left">总Token</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table-body">
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-gray-400">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // AI模型管理功能
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM元素
+        const modelsContainer = document.getElementById('models-container');
+        const addModelButton = document.getElementById('add-model-button');
+        const refreshModelsButton = document.getElementById('refresh-models-button');
+        const statsButton = document.getElementById('stats-button');
+        const addModelModal = document.getElementById('add-model-modal');
+        const editModelModal = document.getElementById('edit-model-modal');
+        const modelTestModal = document.getElementById('model-test-modal');
+        const statsModal = document.getElementById('stats-modal');
+        const addModelForm = document.getElementById('add-model-form');
+        const editModelForm = document.getElementById('edit-model-form');
+        const sendMessageButton = document.getElementById('send-message');
+        const chatInput = document.getElementById('chat-input');
+        const chatContainer = document.querySelector('.chat-container');
+        const testModelName = document.getElementById('test-model-name');
+        const testModelStatus = document.getElementById('test-model-status');
+        const testModelId = document.getElementById('test-model-id');
+        const totalTokens = document.getElementById('total-tokens');
+        const todayTokens = document.getElementById('today-tokens');
+        const totalRequests = document.getElementById('total-requests');
+        const statsTableBody = document.getElementById('stats-table-body');
+        const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+
+        // 加载模型列表
+        function loadModels() {
+            modelsContainer.innerHTML = `
+                <div class="col-span-full flex justify-center items-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+            `;
+
+            fetch('/ai/api/models')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.models.length === 0) {
+                            modelsContainer.innerHTML = `
+                                <div class="col-span-full text-center py-12">
+                                    <i class="fas fa-robot text-4xl text-gray-400 mb-4"></i>
+                                    <p class="text-gray-400">暂无模型，请添加模型</p>
+                                </div>
+                            `;
+                        } else {
+                            modelsContainer.innerHTML = '';
+                            data.models.forEach(model => {
+                                const modelCard = document.createElement('div');
+                                modelCard.className = 'glass-effect rounded-lg p-6 model-card hover:shadow-blue-500/20 transition-all duration-300';
+                                modelCard.innerHTML = `
+                                    <div class="flex justify-between items-start mb-4">
+                                        <h3 class="text-xl font-semibold text-blue-400">${model.name}</h3>
+                                        <span class="badge ${model.enabled ? 'badge-blue' : 'badge-gray'}">${model.enabled ? '启用' : '禁用'}</span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <p class="text-gray-400 text-sm mb-2">模型名称: ${model.model_name}</p>
+                                        <p class="text-gray-400 text-sm mb-2">API URL: ${model.api_url}</p>
+                                        <p class="text-gray-400 text-sm">状态: <span class="${model.enabled ? 'text-green-400' : 'text-yellow-400'}">${model.enabled ? '正常' : '未启用'}</span></p>
+                                    </div>
+                                    <div class="flex justify-between items-center mt-6">
+                                        <div class="text-sm text-gray-400">
+                                            <span>Token消耗: </span>
+                                            <span class="text-white">加载中...</span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="btn-sm btn-blue model-test-button" data-model-id="${model.id}" data-model-name="${model.name}">测试</button>
+                                            <button class="btn-sm btn-yellow model-edit-button" data-model-id="${model.id}">编辑</button>
+                                            <button class="btn-sm btn-red model-delete-button" data-model-id="${model.id}">删除</button>
+                                        </div>
+                                    </div>
+                                `;
+                                modelsContainer.appendChild(modelCard);
+
+                                // 加载Token消耗统计
+                                loadModelTokenUsage(model.id, modelCard);
+                            });
+
+                            // 绑定事件
+                            bindModelCardEvents();
+                        }
+                    } else {
+                        showMessage(`加载模型失败: ${data.error}`, 'error');
+                        modelsContainer.innerHTML = `
+                            <div class="col-span-full text-center py-12">
+                                <i class="fas fa-exclamation-circle text-4xl text-red-400 mb-4"></i>
+                                <p class="text-red-400">加载模型失败</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    showMessage(`加载模型失败: ${error.message}`, 'error');
+                    modelsContainer.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fas fa-exclamation-circle text-4xl text-red-400 mb-4"></i>
+                            <p class="text-red-400">网络错误</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // 加载模型Token使用统计
+        function loadModelTokenUsage(modelId, modelCard) {
+            fetch(`/ai/api/token-usage?model_id=${modelId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tokenElement = modelCard.querySelector('.text-white');
+                        tokenElement.textContent = data.total.total_tokens.toLocaleString();
+                    }
+                })
+                .catch(error => {
+                    console.error('加载Token使用统计失败:', error);
+                });
+        }
+
+        // 绑定模型卡片事件
+        function bindModelCardEvents() {
+            // 测试按钮
+            document.querySelectorAll('.model-test-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modelId = this.dataset.modelId;
+                    const modelName = this.dataset.modelName;
+                    testModelName.textContent = modelName;
+                    testModelId.value = modelId;
+                    testModelStatus.textContent = '连接正常';
+                    testModelStatus.className = 'text-green-400';
+                    
+                    // 清空聊天记录
+                    chatContainer.innerHTML = `
+                        <div class="chat-message bot-message mb-4">
+                            <div class="flex gap-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                                <div class="bg-gray-800 rounded-lg p-3 max-w-[80%]">
+                                    <p class="text-white">你好！我是AI助手，有什么可以帮助你的吗？</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    modelTestModal.classList.remove('hidden');
+                });
+            });
+
+            // 编辑按钮
+            document.querySelectorAll('.model-edit-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modelId = this.dataset.modelId;
+                    
+                    fetch(`/ai/api/model/${modelId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const model = data.model;
+                                editModelForm.querySelector('input[name="id"]').value = model.id;
+                                editModelForm.querySelector('input[name="name"]').value = model.name;
+                                editModelForm.querySelector('input[name="api_url"]').value = model.api_url;
+                                editModelForm.querySelector('input[name="api_key"]').value = model.api_key;
+                                editModelForm.querySelector('input[name="model_name"]').value = model.model_name;
+                                editModelForm.querySelector('textarea[name="system_prompt"]').value = model.system_prompt || '';
+                                editModelForm.querySelector('input[name="enabled"]').checked = model.enabled;
+                                editModelModal.classList.remove('hidden');
+                            } else {
+                                showMessage(`加载模型详情失败: ${data.error}`, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            showMessage(`加载模型详情失败: ${error.message}`, 'error');
+                        });
+                });
+            });
+
+            // 删除按钮
+            document.querySelectorAll('.model-delete-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modelId = this.dataset.modelId;
+                    if (confirm('确定要删除这个模型吗？')) {
+                        fetch('/ai/api/models', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ id: modelId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showMessage('模型删除成功', 'success');
+                                loadModels();
+                            } else {
+                                showMessage(`删除模型失败: ${data.error}`, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            showMessage(`删除模型失败: ${error.message}`, 'error');
+                        });
+                    }
+                });
+            });
+        }
+
+        // 加载统计数据
+        function loadStats() {
+            fetch('/ai/api/token-usage')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        totalTokens.textContent = data.total.total_tokens.toLocaleString();
+                        totalRequests.textContent = data.total.requests;
+                        
+                        // 计算今日消耗
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const todayUsage = data.usages.filter(usage => {
+                            const requestTime = new Date(usage.request_time);
+                            return requestTime >= today;
+                        });
+                        const todayTokensCount = todayUsage.reduce((sum, usage) => sum + usage.total_tokens, 0);
+                        todayTokens.textContent = todayTokensCount.toLocaleString();
+                        
+                        // 更新表格
+                        if (data.usages.length === 0) {
+                            statsTableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-gray-400">暂无使用记录</td>
+                                </tr>
+                            `;
+                        } else {
+                            // 按模型分组统计
+                            const modelStats = {};
+                            data.usages.forEach(usage => {
+                                if (!modelStats[usage.model_id]) {
+                                    modelStats[usage.model_id] = {
+                                        model_id: usage.model_id,
+                                        model_name: '加载中...',
+                                        requests: 0,
+                                        input_tokens: 0,
+                                        output_tokens: 0,
+                                        total_tokens: 0
+                                    };
+                                }
+                                modelStats[usage.model_id].requests++;
+                                modelStats[usage.model_id].input_tokens += usage.input_tokens;
+                                modelStats[usage.model_id].output_tokens += usage.output_tokens;
+                                modelStats[usage.model_id].total_tokens += usage.total_tokens;
+                            });
+                            
+                            // 加载模型名称
+                            Promise.all(
+                                Object.values(modelStats).map(stats => {
+                                    return fetch(`/ai/api/model/${stats.model_id}`)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                stats.model_name = data.model.name;
+                                            }
+                                            return stats;
+                                        });
+                                })
+                            ).then(() => {
+                                statsTableBody.innerHTML = '';
+                                Object.values(modelStats).forEach(stats => {
+                                    const row = document.createElement('tr');
+                                    row.className = 'border-b border-gray-700';
+                                    row.innerHTML = `
+                                        <td class="py-3 px-4">${stats.model_name}</td>
+                                        <td class="py-3 px-4">${stats.requests}</td>
+                                        <td class="py-3 px-4">${stats.input_tokens.toLocaleString()}</td>
+                                        <td class="py-3 px-4">${stats.output_tokens.toLocaleString()}</td>
+                                        <td class="py-3 px-4">${stats.total_tokens.toLocaleString()}</td>
+                                    `;
+                                    statsTableBody.appendChild(row);
+                                });
+                            });
+                        }
+                    } else {
+                        showMessage(`加载统计数据失败: ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage(`加载统计数据失败: ${error.message}`, 'error');
+                });
+        }
+
+        // 发送聊天消息
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // 添加用户消息
+            const userMessageHTML = `
+                <div class="chat-message user-message mb-4 flex justify-end">
+                    <div class="flex gap-2">
+                        <div class="bg-blue-500 rounded-lg p-3 max-w-[80%]">
+                            <p class="text-white">${message}</p>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', userMessageHTML);
+            chatInput.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // 添加加载中消息
+            const loadingMessageHTML = `
+                <div class="chat-message bot-message mb-4 loading-message">
+                    <div class="flex gap-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <div class="bg-gray-800 rounded-lg p-3 max-w-[80%]">
+                            <div class="flex space-x-2">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', loadingMessageHTML);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // 调用后端API获取AI响应
+            fetch('/ai/api/test-model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    model_id: testModelId.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 移除加载中消息
+                document.querySelector('.loading-message').remove();
+                
+                // 添加AI响应消息
+                let botMessageHTML = '';
+                if (data.success) {
+                    botMessageHTML = `
+                        <div class="chat-message bot-message mb-4">
+                            <div class="flex gap-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                                <div class="bg-gray-800 rounded-lg p-3 max-w-[80%]">
+                                    <p class="text-white">${data.response}</p>
+                                    <p class="text-xs text-gray-400 mt-2">Token使用: ${data.usage.total_tokens}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    botMessageHTML = `
+                        <div class="chat-message bot-message mb-4">
+                            <div class="flex gap-2">
+                                <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                                <div class="bg-gray-800 rounded-lg p-3 max-w-[80%]">
+                                    <p class="text-red-400">错误: ${data.error}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    testModelStatus.textContent = '连接失败';
+                    testModelStatus.className = 'text-red-400';
+                }
+                chatContainer.insertAdjacentHTML('beforeend', botMessageHTML);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            })
+            .catch(error => {
+                // 移除加载中消息
+                document.querySelector('.loading-message').remove();
+                
+                // 添加错误消息
+                const errorMessageHTML = `
+                    <div class="chat-message bot-message mb-4">
+                        <div class="flex gap-2">
+                            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white"></i>
+                            </div>
+                            <div class="bg-gray-800 rounded-lg p-3 max-w-[80%]">
+                                <p class="text-red-400">连接错误: ${error.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatContainer.insertAdjacentHTML('beforeend', errorMessageHTML);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                testModelStatus.textContent = '连接失败';
+                testModelStatus.className = 'text-red-400';
+            });
+        }
+
+        // 显示消息
+        function showMessage(message, type = 'info') {
+            // 创建消息元素
+            const messageElement = document.createElement('div');
+            messageElement.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full opacity-0`;
+            
+            // 设置消息类型样式
+            switch (type) {
+                case 'success':
+                    messageElement.classList.add('bg-green-500', 'text-white');
+                    break;
+                case 'error':
+                    messageElement.classList.add('bg-red-500', 'text-white');
+                    break;
+                case 'warning':
+                    messageElement.classList.add('bg-yellow-500', 'text-white');
+                    break;
+                default:
+                    messageElement.classList.add('bg-blue-500', 'text-white');
+            }
+            
+            // 设置消息内容
+            messageElement.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(messageElement);
+            
+            // 显示消息
+            setTimeout(() => {
+                messageElement.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageElement.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    messageElement.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // 事件绑定
+        addModelButton.addEventListener('click', function() {
+            addModelForm.reset();
+            addModelModal.classList.remove('hidden');
+        });
+
+        refreshModelsButton.addEventListener('click', function() {
+            loadModels();
+        });
+
+        statsButton.addEventListener('click', function() {
+            loadStats();
+            statsModal.classList.remove('hidden');
+        });
+
+        sendMessageButton.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 添加模型表单提交
+        addModelForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(addModelForm);
+            const data = Object.fromEntries(formData);
+            data.enabled = data.enabled === 'on';
+
+            fetch('/ai/api/models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('模型创建成功', 'success');
+                    addModelModal.classList.add('hidden');
+                    loadModels();
+                } else {
+                    showMessage(`创建模型失败: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage(`创建模型失败: ${error.message}`, 'error');
+            });
+        });
+
+        // 编辑模型表单提交
+        editModelForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(editModelForm);
+            const data = Object.fromEntries(formData);
+            data.enabled = data.enabled === 'on';
+
+            fetch('/ai/api/models', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('模型更新成功', 'success');
+                    editModelModal.classList.add('hidden');
+                    loadModels();
+                } else {
+                    showMessage(`更新模型失败: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage(`更新模型失败: ${error.message}`, 'error');
+            });
+        });
+
+        // 关闭弹窗
+        closeModalBtns.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                modal.classList.add('hidden');
+            });
+        });
+
+        // 点击弹窗外部关闭
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.add('hidden');
+            }
+        });
+
+        // 初始化加载模型列表
+        loadModels();
+    });
+</script>
+{% endblock %}

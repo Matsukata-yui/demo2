@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+
+{% block title %}AI智能分析平台 - AI功能页面{% endblock %}
+
+{% block head %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<body class='bg-dark text-gray-100 font-inter min-h-screen flex flex-col'>
+    <!-- 顶部导航栏 -->
+<header class='bg-dark-light/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 transition-all duration-300'>
+        <div class='container mx-auto px-4'>
+        <div class='flex items-center justify-between h-16 md:h-20'>
+        <!-- 品牌Logo -->
+<div class='flex items-center space-x-3'>
+        <div class='w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center neon-border'>
+        <i class='fas fa-microchip text-xl'>
+        </i>
+    </div>
+<h1 class='text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary text-gradient'>
+        DataAI
+    </h1>
+    </div>
+<!-- 桌面端导航 -->
+<nav class='hidden md:flex items-center space-x-1'>
+        <a href='{{ url_for('main.dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-tachometer-alt mr-2'>
+        </i>
+后台主页
+    </a>
+<a href='{{ url_for('main.collection_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-database mr-2'>
+        </i>
+采集管理
+    </a>
+<a href='{{ url_for('main.crawler_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-spider mr-2'>
+        </i>
+爬虫管理
+    </a>
+<a href='{{ url_for('main.data_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-table mr-2'>
+        </i>
+数据管理
+    </a>
+<a href='{{ url_for('main.deep_collection') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-search-plus mr-2'>
+        </i>
+深采管理
+    </a>
+<a href='{{ url_for('ai.models') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-brain mr-2'>
+        </i>
+AI模型管理
+    </a>
+<a href='{{ url_for('main.ai_analysis_reports') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-file-alt mr-2'>
+        </i>
+AI分析与报告
+    </a>
+<a href='{{ url_for('main.ai_dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-chart-line mr-2'>
+        </i>
+AI数智大屏
+    </a>
+    </nav>
+<!-- 用户区域 -->
+<div class='flex items-center space-x-4'>
+        <button class='p-2 rounded-full hover:bg-white/10 transition-all relative'>
+        <i class='fas fa-bell text-gray-300'>
+        </i>
+<span class='absolute top-1 right-1 w-2 h-2 bg-danger rounded-full'>
+        </span>
+    </button>
+<div class='flex items-center space-x-3 cursor-pointer group'>
+        <div class='w-9 h-9 rounded-full overflow-hidden border-2 border-primary/50'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-full h-full object-cover'/>
+    </div>
+<div class='hidden md:block'>
+        <p class='text-sm font-medium'>
+        管理员
+    </p>
+<p class='text-xs text-gray-400'>
+        admin@dataai.com
+    </p>
+    </div>
+<a href='{{ url_for('main.logout') }}' class='fas fa-sign-out-alt text-xs text-gray-400 group-hover:text-white transition-all'>
+        </a>
+    </div>
+<button class='md:hidden p-2 rounded-lg hover:bg-white/10 transition-all' id='mobile-menu-button'>
+        <i class='fas fa-bars text-gray-300'>
+        </i>
+    </button>
+    </div>
+    </div>
+    </div>
+<!-- 移动端导航菜单 -->
+<div class='md:hidden hidden bg-dark-light/95 backdrop-blur-md border-t border-primary/20' id='mobile-menu'>
+        <div class='container mx-auto px-4 py-3 space-y-1'>
+        <a href='{{ url_for('main.dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-tachometer-alt mr-2'>
+        </i>
+后台主页
+    </a>
+<a href='{{ url_for('main.collection_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-database mr-2'>
+        </i>
+采集管理
+    </a>
+<a href='{{ url_for('main.crawler_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-spider mr-2'>
+        </i>
+爬虫管理
+    </a>
+<a href='{{ url_for('main.data_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-table mr-2'>
+        </i>
+数据管理
+    </a>
+<a href='{{ url_for('main.deep_collection') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-search-plus mr-2'>
+        </i>
+深采管理
+    </a>
+<a href='{{ url_for('ai.models') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-brain mr-2'>
+        </i>
+AI模型管理
+    </a>
+<a href='{{ url_for('main.ai_analysis_reports') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-file-alt mr-2'>
+        </i>
+AI分析与报告
+    </a>
+<a href='{{ url_for('main.ai_dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-chart-line mr-2'>
+        </i>
+AI数智大屏
+    </a>
+<a href='{{ url_for('main.logout') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-sign-out-alt mr-2'>
+        </i>
+退出登录
+    </a>
+    </div>
+    </div>
+    </header>
+<script>
+    // 移动端菜单切换
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+</script>
+    
+    <!-- 主内容区域 -->
+    <main class='flex-1 container mx-auto px-4 py-6'>
+        <!-- 页面标题 -->
+        <div class='flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8'>
+            <div>
+                <h2 class='text-[clamp(1.5rem,3vw,2.5rem)] font-bold bg-gradient-to-r from-primary to-secondary text-gradient'>AI数据分析平台</h2>
+                <p class='text-gray-400 mt-1'>利用先进的AI技术对采集的数据进行智能分析和处理</p>
+            </div>
+            <div class='flex flex-wrap gap-3'>
+                <button class='px-4 py-2 bg-dark-light border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-800/50 transition-all'>
+                    <i class='fas fa-upload text-secondary'></i>
+                    <span>上传数据</span>
+                </button>
+                <button class='px-4 py-2 bg-primary rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-all pulse-animation'>
+                    <i class='fas fa-play'></i>
+                    <span>开始分析</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- AI功能区域 -->
+        <div class='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+            <!-- 左侧：数据输入 -->
+            <div class='lg:col-span-2 bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-primary/50 transition-all duration-300 neon-border'>
+                <h3 class='font-semibold text-lg mb-4'>数据输入</h3>
+                <div class='space-y-4'>
+                    <!-- 数据来源选择 -->
+                    <div>
+                        <label class='block text-sm font-medium text-gray-300 mb-2'>选择数据来源</label>
+                        <div class='flex gap-2 flex-wrap'>
+                            <button class='px-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-all'>采集数据</button>
+                            <button class='px-4 py-2 bg-dark-light text-gray-300 rounded-lg hover:bg-gray-800/50 transition-all'>上传文件</button>
+                            <button class='px-4 py-2 bg-dark-light text-gray-300 rounded-lg hover:bg-gray-800/50 transition-all'>手动输入</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 数据预览 -->
+                    <div>
+                        <label class='block text-sm font-medium text-gray-300 mb-2'>数据预览</label>
+                        <div class='bg-dark-light/80 rounded-lg p-4 h-[300px] overflow-y-auto'>
+                            <div class='space-y-3'>
+                                <div class='border-b border-gray-800 pb-3'>
+                                    <div class='flex justify-between text-sm'>
+                                        <span class='text-primary font-medium'>标题：</span>
+                                        <span>AI技术在数据采集中的应用</span>
+                                    </div>
+                                    <div class='flex justify-between text-sm mt-1'>
+                                        <span class='text-primary font-medium'>来源：</span>
+                                        <span>科技日报</span>
+                                    </div>
+                                    <div class='flex justify-between text-sm mt-1'>
+                                        <span class='text-primary font-medium'>发布时间：</span>
+                                        <span>2026-01-07 10:30:00</span>
+                                    </div>
+                                    <div class='mt-2 text-sm text-gray-400'>
+                                        随着人工智能技术的不断发展，AI在数据采集领域的应用越来越广泛。AI可以帮助企业更高效地采集、分析和利用数据，从而提升业务效率和竞争力。
+                                    </div>
+                                </div>
+                                <div class='border-b border-gray-800 pb-3'>
+                                    <div class='flex justify-between text-sm'>
+                                        <span class='text-primary font-medium'>标题：</span>
+                                        <span>大数据时代的舆情分析</span>
+                                    </div>
+                                    <div class='flex justify-between text-sm mt-1'>
+                                        <span class='text-primary font-medium'>来源：</span>
+                                        <span>网络安全周报</span>
+                                    </div>
+                                    <div class='flex justify-between text-sm mt-1'>
+                                        <span class='text-primary font-medium'>发布时间：</span>
+                                        <span>2026-01-06 15:20:00</span>
+                                    </div>
+                                    <div class='mt-2 text-sm text-gray-400'>
+                                        在大数据时代，舆情分析变得越来越重要。通过对海量网络数据的采集和分析，可以及时了解公众对企业、产品或事件的看法和态度，为决策提供参考。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析参数设置 -->
+                    <div>
+                        <label class='block text-sm font-medium text-gray-300 mb-2'>分析参数设置</label>
+                        <div class='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                            <div>
+                                <label class='block text-xs text-gray-400 mb-1'>分析类型</label>
+                                <select class='w-full bg-dark-light border border-gray-700 rounded-lg px-3 py-2 text-white'>
+                                    <option>情感分析</option>
+                                    <option>关键词提取</option>
+                                    <option>主题分类</option>
+                                    <option>摘要生成</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class='block text-xs text-gray-400 mb-1'>置信度阈值</label>
+                                <input type='range' min='0.5' max='1' step='0.05' value='0.8' class='w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-primary'>
+                                <div class='flex justify-between text-xs text-gray-400 mt-1'>
+                                    <span>0.5</span>
+                                    <span>0.8</span>
+                                    <span>1.0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class='block text-xs text-gray-400 mb-1'>关键词数量</label>
+                                <select class='w-full bg-dark-light border border-gray-700 rounded-lg px-3 py-2 text-white'>
+                                    <option>5</option>
+                                    <option>10</option>
+                                    <option>15</option>
+                                    <option>20</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧：AI分析结果 -->
+            <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-primary/50 transition-all duration-300 neon-border'>
+                <h3 class='font-semibold text-lg mb-4'>分析结果</h3>
+                <div class='space-y-4'>
+                    <!-- 情感分析结果 -->
+                    <div>
+                        <div class='flex justify-between items-center mb-2'>
+                            <h4 class='text-sm font-medium'>情感分析</h4>
+                            <span class='px-3 py-1 bg-success/20 text-success rounded-full text-xs'>积极</span>
+                        </div>
+                        <div class='h-2 bg-gray-800 rounded-full overflow-hidden'>
+                            <div class='h-full bg-success rounded-full' style='width: 92%'></div>
+                        </div>
+                        <div class='flex justify-between text-xs text-gray-400 mt-1'>
+                            <span>消极</span>
+                            <span>积极</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 关键词提取 -->
+                    <div>
+                        <h4 class='text-sm font-medium mb-2'>关键词提取</h4>
+                        <div class='flex flex-wrap gap-2'>
+                            <span class='px-3 py-1 bg-primary/20 text-primary rounded-full text-xs'>AI技术</span>
+                            <span class='px-3 py-1 bg-primary/20 text-primary rounded-full text-xs'>数据采集</span>
+                            <span class='px-3 py-1 bg-primary/20 text-primary rounded-full text-xs'>舆情分析</span>
+                            <span class='px-3 py-1 bg-primary/20 text-primary rounded-full text-xs'>大数据</span>
+                            <span class='px-3 py-1 bg-primary/20 text-primary rounded-full text-xs'>人工智能</span>
+                            <span class='px-3 py-1 bg-primary/20 text-primary rounded-full text-xs'>决策支持</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 摘要生成 -->
+                    <div>
+                        <h4 class='text-sm font-medium mb-2'>摘要生成</h4>
+                        <div class='bg-dark-light/80 rounded-lg p-4 text-sm text-gray-400'>
+                            分析结果显示，AI技术在数据采集和舆情分析领域的应用越来越广泛，能够帮助企业更高效地获取和利用数据。大部分内容对AI技术持积极态度，主要关键词包括AI技术、数据采集、舆情分析、大数据等。
+                        </div>
+                    </div>
+                    
+                    <!-- 置信度分析 -->
+                    <div>
+                        <h4 class='text-sm font-medium mb-2'>置信度分析</h4>
+                        <div id='confidence-chart' class='h-[200px]'></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分析报告生成 -->
+        <div class='mt-8 bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-primary/50 transition-all duration-300 neon-border'>
+            <div class='flex items-center justify-between mb-4'>
+                <h3 class='font-semibold text-lg'>分析报告生成</h3>
+                <button class='px-4 py-2 bg-secondary rounded-lg flex items-center gap-2 hover:bg-secondary/90 transition-all'>
+                    <i class='fas fa-file-alt'></i>
+                    <span>生成完整报告</span>
+                </button>
+            </div>
+            <div class='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div>
+                    <h4 class='text-sm font-medium mb-2 text-primary'>分析概况</h4>
+                    <ul class='space-y-2 text-sm text-gray-400'>
+                        <li class='flex justify-between'>
+                            <span>分析类型：</span>
+                            <span class='text-white'>综合分析</span>
+                        </li>
+                        <li class='flex justify-between'>
+                            <span>数据总量：</span>
+                            <span class='text-white'>1,285条</span>
+                        </li>
+                        <li class='flex justify-between'>
+                            <span>分析时长：</span>
+                            <span class='text-white'>2分35秒</span>
+                        </li>
+                        <li class='flex justify-between'>
+                            <span>积极占比：</span>
+                            <span class='text-success'>68%</span>
+                        </li>
+                        <li class='flex justify-between'>
+                            <span>中性占比：</span>
+                            <span class='text-warning'>22%</span>
+                        </li>
+                        <li class='flex justify-between'>
+                            <span>消极占比：</span>
+                            <span class='text-danger'>10%</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class='text-sm font-medium mb-2 text-primary'>主题分布</h4>
+                    <div id='topic-distribution-chart' class='h-[200px]'></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // 初始化置信度分析图表
+        const confidenceChart = echarts.init(document.getElementById('confidence-chart'));
+        const confidenceOption = {
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(29, 33, 41, 0.8)',
+                borderColor: '#165DFF',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: ['情感分析', '关键词提取', '主题分类', '摘要生成'],
+                axisLine: {
+                    lineStyle: {
+                        color: '#272E3B'
+                    }
+                },
+                axisLabel: {
+                    color: '#C9CDD4',
+                    fontSize: 10
+                }
+            },
+            yAxis: {
+                type: 'value',
+                min: 0.5,
+                max: 1,
+                axisLine: {
+                    lineStyle: {
+                        color: '#272E3B'
+                    }
+                },
+                axisLabel: {
+                    color: '#C9CDD4',
+                    fontSize: 10
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#272E3B'
+                    }
+                }
+            },
+            series: [{
+                data: [0.92, 0.88, 0.85, 0.82],
+                type: 'bar',
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#165DFF' },
+                        { offset: 1, color: '#0FC6C2' }
+                    ])
+                },
+                barWidth: '60%'
+            }]
+        };
+        confidenceChart.setOption(confidenceOption);
+        
+        // 初始化主题分布图表
+        const topicChart = echarts.init(document.getElementById('topic-distribution-chart'));
+        const topicOption = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(29, 33, 41, 0.8)',
+                borderColor: '#165DFF',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#fff'
+                },
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            series: [{
+                name: '主题分布',
+                type: 'pie',
+                radius: '70%',
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 8,
+                    borderColor: '#1D2129',
+                    borderWidth: 2
+                },
+                label: {
+                    show: false
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '12',
+                        fontWeight: 'bold',
+                        color: '#fff'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: [
+                    { value: 35, name: 'AI技术应用', itemStyle: { color: '#165DFF' } },
+                    { value: 25, name: '数据采集', itemStyle: { color: '#0FC6C2' } },
+                    { value: 20, name: '舆情分析', itemStyle: { color: '#722ED1' } },
+                    { value: 15, name: '大数据处理', itemStyle: { color: '#FF7D00' } },
+                    { value: 5, name: '其他', itemStyle: { color: '#00B42A' } }
+                ]
+            }]
+        };
+        topicChart.setOption(topicOption);
+        
+        // 响应式调整
+        window.addEventListener('resize', function() {
+            confidenceChart.resize();
+            topicChart.resize();
+        });
+    </script>
+</body>
+{% endblock %}

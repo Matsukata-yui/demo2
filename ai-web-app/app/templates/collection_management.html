@@ -1,0 +1,1076 @@
+{% extends 'base.html' %}
+
+{% block title %}采集管理 - AI智能政企瞭望舆情数据采集与分析系统{% endblock %}
+
+{% block head %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header class='bg-dark-light/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 transition-all duration-300'>
+    <div class='container mx-auto px-4'>
+        <div class='flex items-center justify-between h-16 md:h-20'>
+            <!-- 品牌Logo -->
+            <div class='flex items-center space-x-3'>
+                <div class='w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center neon-border'>
+                    <i class='fas fa-microchip text-xl'></i>
+                </div>
+                <h1 class='text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary text-gradient'>DataAI</h1>
+            </div>
+            <!-- 桌面端导航 -->
+            <nav class='hidden md:flex items-center space-x-1'>
+                <a href='{{ url_for('main.dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-tachometer-alt mr-2'></i>后台主页</a>
+                <a href='{{ url_for('main.collection_management') }}' class='px-4 py-2 rounded-md text-primary border border-primary/30 bg-primary/10 font-medium transition-all hover:bg-primary/20'><i class='fas fa-database mr-2'></i>采集管理</a>
+                <a href='{{ url_for('main.crawler_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-spider mr-2'></i>爬虫管理</a>
+                <a href='{{ url_for('main.data_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-table mr-2'></i>数据管理</a>
+                <a href='{{ url_for('main.deep_collection') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-search-plus mr-2'></i>深采管理</a>
+                <a href='{{ url_for('ai.models') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-brain mr-2'></i>AI模型管理</a>
+                <a href='{{ url_for('main.ai_analysis_reports') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'><i class='fas fa-file-alt mr-2'></i>AI分析与报告</a>
+                <a href='{{ url_for('main.ai_dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5' target='_blank'><i class='fas fa-chart-line mr-2'></i>AI数智大屏</a>
+            </nav>
+            <!-- 用户区域 -->
+            <div class='flex items-center space-x-4'>
+                <button class='p-2 rounded-full hover:bg-white/10 transition-all relative'>
+                    <i class='fas fa-bell text-gray-300'></i>
+                    <span class='absolute top-1 right-1 w-2 h-2 bg-danger rounded-full'></span>
+                </button>
+                <div class='flex items-center space-x-3 cursor-pointer group'>
+                    <div class='w-9 h-9 rounded-full overflow-hidden border-2 border-primary/50'>
+                        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-full h-full object-cover'/>
+                    </div>
+                    <div class='hidden md:block'>
+                        <p class='text-sm font-medium'>管理员</p>
+                        <p class='text-xs text-gray-400'>admin@dataai.com</p>
+                    </div>
+                    <a href='{{ url_for('main.logout') }}' class='fas fa-sign-out-alt text-xs text-gray-400 group-hover:text-white transition-all'></a>
+                </div>
+                <button class='md:hidden p-2 rounded-lg hover:bg-white/10 transition-all' id='mobile-menu-button'>
+                    <i class='fas fa-bars text-gray-300'></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- 移动端导航菜单 -->
+    <div class='md:hidden hidden bg-dark-light/95 backdrop-blur-md border-t border-primary/20' id='mobile-menu'>
+        <div class='container mx-auto px-4 py-3 space-y-1'>
+            <a href='{{ url_for('main.dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-tachometer-alt mr-2'></i>后台主页</a>
+            <a href='{{ url_for('main.collection_management') }}' class='block px-4 py-3 rounded-md text-primary border border-primary/30 bg-primary/10 font-medium'><i class='fas fa-database mr-2'></i>采集管理</a>
+            <a href='{{ url_for('main.crawler_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-spider mr-2'></i>爬虫管理</a>
+            <a href='{{ url_for('main.data_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-table mr-2'></i>数据管理</a>
+            <a href='{{ url_for('main.deep_collection') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-search-plus mr-2'></i>深采管理</a>
+            <a href='{{ url_for('ai.models') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-brain mr-2'></i>AI模型管理</a>
+            <a href='{{ url_for('main.ai_analysis_reports') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-file-alt mr-2'></i>AI分析与报告</a>
+            <a href='{{ url_for('main.ai_dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-chart-line mr-2'></i>AI数智大屏</a>
+            <a href='{{ url_for('main.logout') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'><i class='fas fa-sign-out-alt mr-2'></i>退出登录</a>
+        </div>
+    </div>
+</header>
+
+<!-- 主内容区域 -->
+<main class='flex-1 container mx-auto px-4 py-6'>
+    <div class='space-y-8'>
+        <!-- 页面标题 -->
+        <div class='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+            <div>
+                <h2 class='text-[clamp(1.5rem,3vw,2.5rem)] font-bold bg-gradient-to-r from-white to-gray-300 text-gradient'>采集管理</h2>
+                <p class='text-gray-400 mt-1'>管理数据采集任务和采集规则</p>
+            </div>
+            <div class='flex flex-wrap gap-3'>
+                <button class='px-4 py-2 bg-dark-light border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-800/50 transition-all'>
+                    <i class='fas fa-download text-secondary'></i>
+                    <span>导出数据</span>
+                </button>
+                <button class='px-4 py-2 bg-primary rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-all pulse-animation'>
+                    <i class='fas fa-plus'></i>
+                    <span>新建采集任务</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 采集配置区域 -->
+        <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+            <h3 class='font-semibold text-lg mb-6'>实时采集配置</h3>
+            
+            <!-- 关键词输入 -->
+            <div class='mb-6'>
+                <label class='block text-sm text-gray-300 mb-2'>采集关键词</label>
+                <div class='relative'>
+                    <input type='text' id='keyword-input' placeholder='请输入要采集的关键词' class='w-full px-4 py-3 bg-dark border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all'>
+                    <div id='keyword-suggestions' class='absolute top-full left-0 right-0 mt-1 bg-dark-light border border-gray-700 rounded-lg shadow-lg z-10 hidden max-h-60 overflow-y-auto'></div>
+                </div>
+                <p id='keyword-error' class='text-danger text-xs mt-1 hidden'>请输入关键词</p>
+            </div>
+            
+            <!-- 爬虫源选择 -->
+            <div class='mb-6'>
+                <div class='flex items-center justify-between mb-3'>
+                    <label class='block text-sm text-gray-300'>选择爬虫源</label>
+                    <button id='select-all-crawlers' class='text-sm text-primary hover:text-primary/80 transition-all'>全选</button>
+                </div>
+                <div id='crawler-sources' class='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                    <!-- 爬虫源将通过JavaScript动态加载 -->
+                    <div class='flex items-center justify-between p-3 bg-dark border border-gray-700 rounded-lg'>
+                        <div>
+                            <div class='font-medium text-gray-200'>百度搜索</div>
+                            <div class='text-xs text-gray-400'>baidu.com</div>
+                        </div>
+                        <label class='relative inline-flex items-center cursor-pointer'>
+                            <input type='checkbox' class='sr-only peer' value='baidu_search' checked>
+                            <div class='w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary'></div>
+                        </label>
+                    </div>
+                    <div class='flex items-center justify-between p-3 bg-dark border border-gray-700 rounded-lg'>
+                        <div>
+                            <div class='font-medium text-gray-200'>谷歌搜索</div>
+                            <div class='text-xs text-gray-400'>google.com</div>
+                        </div>
+                        <label class='relative inline-flex items-center cursor-pointer'>
+                            <input type='checkbox' class='sr-only peer' value='google_search'>
+                            <div class='w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary'></div>
+                        </label>
+                    </div>
+                </div>
+                <p id='crawler-error' class='text-danger text-xs mt-1 hidden'>请至少选择一个爬虫源</p>
+            </div>
+            
+            <!-- 采集触发按钮 -->
+            <div class='flex justify-center'>
+                <button id='start-collection-btn' class='px-8 py-3 bg-primary rounded-lg font-medium hover:bg-primary/90 transition-all pulse-animation text-lg'>
+                    <i class='fas fa-play-circle mr-2'></i>开始采集
+                </button>
+            </div>
+        </div>
+
+        <!-- 采集状态和结果区域 -->
+        <div class='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+            <!-- 采集状态 -->
+            <div class='lg:col-span-1'>
+                <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border h-full'>
+                    <h3 class='font-semibold text-lg mb-4'>采集状态</h3>
+                    <div class='space-y-4'>
+                        <div>
+                            <div class='text-sm text-gray-400 mb-1'>当前状态</div>
+                            <div id='collection-status' class='text-lg font-medium text-gray-200'>准备就绪</div>
+                        </div>
+                        <div>
+                            <div class='text-sm text-gray-400 mb-1'>已采集数量</div>
+                            <div id='collected-count' class='text-lg font-medium text-gray-200'>0</div>
+                        </div>
+                        <div>
+                            <div class='text-sm text-gray-400 mb-1'>采集时间</div>
+                            <div id='collection-time' class='text-sm text-gray-300'>-</div>
+                        </div>
+                        <div>
+                            <div class='text-sm text-gray-400 mb-1'>进度</div>
+                            <div class='w-full bg-gray-700 rounded-full h-2.5'>
+                                <div id='collection-progress' class='bg-primary h-2.5 rounded-full' style='width: 0%'></div>
+                            </div>
+                        </div>
+                        <div class='pt-4 border-t border-gray-700'>
+                            <button id='save-selected-btn' class='w-full px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed' disabled>
+                                <i class='fas fa-save mr-2'></i>保存选中数据
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 采集结果展示 -->
+            <div class='lg:col-span-2'>
+                <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border h-full'>
+                    <h3 class='font-semibold text-lg mb-4'>采集结果</h3>
+                    <div id='collection-results' class='space-y-4 max-h-[600px] overflow-y-auto'>
+                        <!-- 采集结果将通过JavaScript动态加载 -->
+                        <div class='text-center text-gray-400 py-12'>
+                            <i class='fas fa-search text-4xl mb-3'></i>
+                            <p>点击"开始采集"按钮开始采集数据</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 采集规则设置 -->
+        <div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+            <h3 class='font-semibold text-lg mb-6'>采集规则设置</h3>
+            <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <div class='space-y-4'>
+                    <div>
+                        <label class='block text-sm text-gray-300 mb-2'>关键词过滤</label>
+                        <textarea placeholder='输入需要过滤的关键词，每行一个' class='w-full px-4 py-2 bg-dark-light border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all h-24'></textarea>
+                    </div>
+                    <div>
+                        <label class='block text-sm text-gray-300 mb-2'>采集时间范围</label>
+                        <div class='flex gap-2'>
+                            <input type='date' class='flex-1 px-4 py-2 bg-dark-light border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all'>
+                            <input type='date' class='flex-1 px-4 py-2 bg-dark-light border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all'>
+                        </div>
+                    </div>
+                </div>
+                <div class='space-y-4'>
+                    <div>
+                        <label class='block text-sm text-gray-300 mb-2'>采集数量限制</label>
+                        <input type='number' placeholder='输入每日最大采集数量' class='w-full px-4 py-2 bg-dark-light border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all'>
+                    </div>
+                    <div>
+                        <label class='block text-sm text-gray-300 mb-2'>数据存储策略</label>
+                        <select class='w-full px-4 py-2 bg-dark-light border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all'>
+                            <option>全部存储</option>
+                            <option>仅存储符合条件的数据</option>
+                            <option>存储前进行去重</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class='flex justify-end mt-6 gap-3'>
+                <button class='px-4 py-2 bg-dark-light border border-gray-700 rounded-lg hover:bg-gray-800/50 transition-all'>取消</button>
+                <button class='px-4 py-2 bg-primary rounded-lg hover:bg-primary/90 transition-all'>保存设置</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 移动端菜单切换
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // 关键词输入功能
+    const keywordInput = document.getElementById('keyword-input');
+    const keywordSuggestions = document.getElementById('keyword-suggestions');
+    const keywordError = document.getElementById('keyword-error');
+    
+    // 模拟关键词建议数据
+    const keywordHistory = ['人工智能', '大数据', 'Python', '机器学习', '深度学习', 'web开发', '数据可视化'];
+    
+    keywordInput.addEventListener('input', function() {
+        const keyword = this.value.trim();
+        
+        // 隐藏错误提示
+        keywordError.classList.add('hidden');
+        
+        // 显示关键词建议
+        if (keyword.length > 0) {
+            const suggestions = keywordHistory.filter(item => 
+                item.includes(keyword)
+            );
+            
+            if (suggestions.length > 0) {
+                keywordSuggestions.innerHTML = '';
+                suggestions.forEach(suggestion => {
+                    const div = document.createElement('div');
+                    div.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-all';
+                    div.textContent = suggestion;
+                    div.addEventListener('click', function() {
+                        keywordInput.value = this.textContent;
+                        keywordSuggestions.classList.add('hidden');
+                    });
+                    keywordSuggestions.appendChild(div);
+                });
+                keywordSuggestions.classList.remove('hidden');
+            } else {
+                keywordSuggestions.classList.add('hidden');
+            }
+        } else {
+            keywordSuggestions.classList.add('hidden');
+        }
+    });
+    
+    // 点击页面其他地方隐藏关键词建议
+    document.addEventListener('click', function(e) {
+        if (!keywordInput.contains(e.target) && !keywordSuggestions.contains(e.target)) {
+            keywordSuggestions.classList.add('hidden');
+        }
+    });
+
+    // 爬虫源选择功能
+    const selectAllCrawlersBtn = document.getElementById('select-all-crawlers');
+    const crawlerSources = document.getElementById('crawler-sources');
+    const crawlerError = document.getElementById('crawler-error');
+    let selectAll = false;
+    
+    selectAllCrawlersBtn.addEventListener('click', function() {
+        selectAll = !selectAll;
+        const checkboxes = crawlerSources.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll;
+        });
+        this.textContent = selectAll ? '取消全选' : '全选';
+    });
+
+    // 采集触发功能
+    const startCollectionBtn = document.getElementById('start-collection-btn');
+    const collectionStatus = document.getElementById('collection-status');
+    const collectedCount = document.getElementById('collected-count');
+    const collectionTime = document.getElementById('collection-time');
+    const collectionProgress = document.getElementById('collection-progress');
+    const collectionResults = document.getElementById('collection-results');
+    const saveSelectedBtn = document.getElementById('save-selected-btn');
+    
+    // 任务状态管理
+    let currentTask = {
+        id: null,
+        status: 'idle', // idle, running, stopped, completed, failed
+        keyword: '',
+        crawlers: [],
+        startTime: null,
+        lastPollTime: null,
+        retryCount: 0,
+        maxRetries: 3
+    };
+    let collectedData = [];
+    let pollInterval = null;
+    let isStartingCollection = false; // 防抖动标志
+    const MAX_TASK_DURATION = 30 * 60 * 1000; // 任务最大持续时间（30分钟）
+    let taskTimeoutTimer = null;
+    
+    // 前端状态管理与交互控制
+    function updateButtonStates() {
+        if (currentTask.status === 'running') {
+            startCollectionBtn.disabled = false;
+            startCollectionBtn.innerHTML = '<i class="fas fa-stop-circle mr-2"></i>停止采集';
+        } else {
+            startCollectionBtn.disabled = false;
+            startCollectionBtn.innerHTML = '<i class="fas fa-play-circle mr-2"></i>开始采集';
+        }
+    }
+    
+    startCollectionBtn.addEventListener('click', function() {
+        console.log('开始采集按钮被点击，当前状态:', currentTask.status);
+        if (currentTask.status === 'running') {
+            // 点击停止采集
+            console.log('执行停止采集');
+            stopCollection();
+        } else {
+            // 点击开始采集
+            console.log('执行开始采集');
+            startCollection();
+        }
+    });
+    
+    // 开始采集
+    function startCollection() {
+        console.log('进入startCollection函数');
+        console.log('当前isStartingCollection:', isStartingCollection);
+        
+        // 防抖动处理
+        if (isStartingCollection) {
+            console.log('防抖动触发，函数返回');
+            return;
+        }
+        
+        // 表单验证
+        const keyword = keywordInput.value.trim();
+        const selectedCrawlers = Array.from(crawlerSources.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        
+        console.log('表单验证: keyword="' + keyword + '", selectedCrawlers=', selectedCrawlers);
+        
+        let isValid = true;
+        
+        if (!keyword) {
+            console.log('验证失败: 关键词为空');
+            keywordError.classList.remove('hidden');
+            isValid = false;
+        } else {
+            keywordError.classList.add('hidden');
+        }
+        
+        if (selectedCrawlers.length === 0) {
+            console.log('验证失败: 未选择爬虫源');
+            crawlerError.classList.remove('hidden');
+            isValid = false;
+        } else {
+            crawlerError.classList.add('hidden');
+        }
+        
+        console.log('验证结果:', isValid);
+        
+        if (!isValid) {
+            console.log('验证失败，函数返回');
+            return;
+        }
+        
+        console.log('验证通过，继续执行');
+
+        
+        // 设置防抖动标志
+        isStartingCollection = true;
+        
+        // 重置任务状态
+        currentTask = {
+            id: null,
+            status: 'preparing',
+            keyword: keyword,
+            crawlers: selectedCrawlers,
+            startTime: new Date(),
+            lastPollTime: null,
+            retryCount: 0,
+            maxRetries: 3
+        };
+        
+        // 清除之前的定时器
+        if (taskTimeoutTimer) {
+            clearTimeout(taskTimeoutTimer);
+        }
+        
+        // 设置任务超时定时器
+        taskTimeoutTimer = setTimeout(() => {
+            if (currentTask.status === 'running') {
+                showMessage('采集任务已超时，自动停止', 'warning');
+                stopCollection();
+            }
+        }, MAX_TASK_DURATION);
+        
+        // 更新UI状态
+        collectionStatus.textContent = '准备中...';
+        collectionStatus.className = 'text-lg font-medium text-success';
+        collectedCount.textContent = '0';
+        collectionTime.textContent = currentTask.startTime.toLocaleString('zh-CN');
+        collectionProgress.style.width = '0%';
+        saveSelectedBtn.disabled = true;
+        startCollectionBtn.disabled = true;
+        startCollectionBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>准备中...';
+        
+        // 清空结果区域
+        collectionResults.innerHTML = '';
+        collectedData = [];
+        
+        // 保存关键词到历史记录
+        saveKeywordToHistory(keyword);
+        
+        // 提交采集请求到后端API
+        submitCollectionRequest(keyword, selectedCrawlers);
+    }
+    
+    // 停止采集
+    function stopCollection() {
+        if (!currentTask.id) {
+            return;
+        }
+        
+        // 调用停止采集接口
+        fetch(`/api/collection/stop/${currentTask.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('停止采集请求已发送', 'info');
+                // 状态会在轮询中更新
+            } else {
+                showMessage('停止采集失败: ' + (data.error || '未知错误'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('停止采集失败:', error);
+            showMessage('网络错误，请稍后重试', 'error');
+        });
+    }
+
+    // 提交采集请求到后端API
+    function submitCollectionRequest(keyword, crawlers) {
+        const requestData = {
+            keyword: keyword,
+            crawlers: crawlers,
+            page: 1,
+            limit: 10
+        };
+        
+        console.log('提交采集请求参数:', requestData);
+        console.log('准备发送采集请求到: /api/collection/start');
+        
+        fetch('/api/collection/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            console.log('采集请求响应状态:', response.status);
+            console.log('采集请求响应头:', Object.fromEntries(response.headers.entries()));
+            
+            if (!response.ok) {
+                throw new Error('网络响应错误: ' + response.status);
+            }
+            
+            // 检查响应是否为JSON
+            const contentType = response.headers.get('content-type');
+            console.log('响应内容类型:', contentType);
+            
+            if (!contentType || !contentType.includes('application/json')) {
+                return response.text().then(text => {
+                    console.log('响应内容(非JSON):', text);
+                    throw new Error('响应不是JSON格式');
+                });
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('采集请求响应数据:', data);
+            
+            // 重置防抖动标志
+            isStartingCollection = false;
+            
+            if (data.success) {
+                // 采集任务创建成功，开始轮询结果
+                currentTask.id = data.task_id;
+                currentTask.status = 'running';
+                currentTask.lastPollTime = new Date();
+                collectionStatus.textContent = '采集ing...';
+                collectionStatus.className = 'text-lg font-medium text-success';
+                updateButtonStates();
+                
+                // 开始轮询采集结果
+                startPollingResults();
+            } else {
+                // 采集任务创建失败
+                currentTask.status = 'failed';
+                collectionStatus.textContent = '采集失败';
+                collectionStatus.className = 'text-lg font-medium text-danger';
+                updateButtonStates();
+                showMessage('采集任务创建失败: ' + (data.error || '未知错误'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('提交采集请求失败:', error);
+            
+            // 重置防抖动标志
+            isStartingCollection = false;
+            
+            currentTask.status = 'failed';
+            collectionStatus.textContent = '采集失败';
+            collectionStatus.className = 'text-lg font-medium text-danger';
+            updateButtonStates();
+            showMessage('网络错误，请稍后重试', 'error');
+        });
+    }
+
+    // 开始轮询采集结果
+    function startPollingResults() {
+        // 清除现有的轮询
+        if (pollInterval) {
+            clearInterval(pollInterval);
+        }
+        
+        // 开始新的轮询（2-3秒间隔）
+        pollInterval = setInterval(pollCollectionResults, 2500);
+        
+        // 立即执行一次
+        pollCollectionResults();
+    }
+
+    // 停止轮询
+    function stopPollingResults() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    // 轮询采集结果
+    function pollCollectionResults() {
+        if (!currentTask.id || currentTask.status === 'idle') {
+            stopPollingResults();
+            return;
+        }
+        
+        fetch(`/api/collection/results/${currentTask.id}`, {
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应错误: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 重置重试计数
+                currentTask.retryCount = 0;
+                currentTask.lastPollTime = new Date();
+                
+                if (data.success) {
+                    const newItems = data.results || [];
+                    
+                    // 处理新数据
+                    newItems.forEach(item => {
+                        if (!collectedData.some(existingItem => existingItem.id === item.id)) {
+                            collectedData.push(item);
+                            renderCollectedItem(item);
+                            collectedCount.textContent = collectedData.length;
+                            
+                            // 自动滚动到底部
+                            collectionResults.scrollTop = collectionResults.scrollHeight;
+                        }
+                    });
+                    
+                    // 更新进度
+                    if (data.progress !== undefined) {
+                        collectionProgress.style.width = `${Math.round(data.progress)}%`;
+                    }
+                    
+                    // 动态更新采集状态
+                    if (data.status) {
+                        currentTask.status = data.status;
+                        switch (data.status) {
+                            case 'running':
+                                collectionStatus.textContent = '采集ing...';
+                                collectionStatus.className = 'text-lg font-medium text-success';
+                                break;
+                            case 'completed':
+                                collectionStatus.textContent = '采集完成';
+                                collectionStatus.className = 'text-lg font-medium text-secondary';
+                                break;
+                            case 'stopped':
+                                collectionStatus.textContent = '已停止';
+                                collectionStatus.className = 'text-lg font-medium text-secondary';
+                                break;
+                            case 'failed':
+                                collectionStatus.textContent = '采集失败';
+                                collectionStatus.className = 'text-lg font-medium text-danger';
+                                break;
+                            default:
+                                collectionStatus.textContent = data.status;
+                                collectionStatus.className = 'text-lg font-medium text-gray-200';
+                        }
+                    }
+                    
+                    // 动态更新已采集数量
+                    if (data.total_collected !== undefined) {
+                        collectedCount.textContent = data.total_collected;
+                    } else {
+                        collectedCount.textContent = collectedData.length;
+                    }
+                    
+                    // 动态更新采集时间
+                    collectionTime.textContent = new Date().toLocaleString('zh-CN');
+                    
+                    // 检查采集是否完成
+                    if (data.status === 'completed' || data.status === 'stopped' || data.status === 'failed') {
+                        stopPollingResults();
+                        updateButtonStates();
+                        saveSelectedBtn.disabled = collectedData.length === 0;
+                        
+                        // 清除任务超时定时器
+                        if (taskTimeoutTimer) {
+                            clearTimeout(taskTimeoutTimer);
+                            taskTimeoutTimer = null;
+                        }
+                        
+                        if (data.status === 'completed') {
+                            showMessage(`采集任务已完成，共采集 ${collectedData.length} 条数据`, 'success');
+                        } else if (data.status === 'stopped') {
+                            showMessage(`采集任务已停止，共采集 ${collectedData.length} 条数据`, 'info');
+                        } else if (data.status === 'failed') {
+                            showMessage('采集任务失败: ' + (data.error || '未知错误'), 'error');
+                        }
+                    }
+                } else {
+                    // 处理无效的task_id
+                    if (data.error && data.error.includes('任务不存在')) {
+                        currentTask.status = 'failed';
+                        collectionStatus.textContent = '采集失败';
+                        collectionStatus.className = 'text-lg font-medium text-danger';
+                        stopPollingResults();
+                        updateButtonStates();
+                        showMessage('采集任务不存在或已被删除', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('轮询采集结果失败:', error);
+                
+                // 处理网络错误和重试机制
+                currentTask.retryCount++;
+                
+                if (currentTask.retryCount <= currentTask.maxRetries) {
+                    showMessage(`网络连接失败，正在重试 (${currentTask.retryCount}/${currentTask.maxRetries})...`, 'warning');
+                } else {
+                    // 重试次数达到上限
+                    currentTask.status = 'failed';
+                    collectionStatus.textContent = '采集失败';
+                    collectionStatus.className = 'text-lg font-medium text-danger';
+                    stopPollingResults();
+                    updateButtonStates();
+                    showMessage('网络连接失败，采集任务已停止', 'error');
+                }
+            });
+    }
+
+    // 渲染采集到的项目
+    function renderCollectedItem(item) {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'flex flex-col md:flex-row gap-4 p-4 bg-dark border border-gray-700 rounded-lg hover:bg-gray-800/30 hover:border-primary/50 transition-all opacity-0 transform translateY-2';
+        itemElement.style.transition = 'all 0.3s ease';
+        
+        itemElement.innerHTML = `
+            <div class='flex-shrink-0 w-full md:w-32 h-24 md:h-24 rounded-lg overflow-hidden bg-gray-800/50 flex items-center justify-center'>
+                <img src='${item.image || "https://picsum.photos/seed/default/300/200"}' alt='${item.title}' class='w-full h-full object-cover transition-transform duration-500 hover:scale-105'>
+            </div>
+            <div class='flex-1 min-w-0'>
+                <div class='flex items-start justify-between mb-2'>
+                    <label class='flex items-center cursor-pointer'>
+                        <input type='checkbox' class='sr-only peer item-checkbox' value='${item.id}'>
+                        <div class='w-5 h-5 border border-gray-500 rounded peer-checked:bg-primary peer-checked:border-primary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 transition-all'></div>
+                    </label>
+                    <span class='text-xs px-2 py-1 bg-gray-800/50 rounded-full text-gray-300'>${item.source}</span>
+                </div>
+                <h4 class='font-medium text-gray-200 mb-2 line-clamp-2 md:line-clamp-3'>
+                    <a href='${item.url}' target='_blank' class='hover:text-primary transition-all hover:underline'>${item.title}</a>
+                </h4>
+                <div class='flex items-center justify-between text-xs text-gray-400'>
+                    <span>${item.timestamp || new Date().toLocaleString('zh-CN')}</span>
+                    <a href='${item.url}' target='_blank' class='flex items-center hover:text-primary transition-all'>
+                        <i class='fas fa-external-link-alt mr-1'></i> 查看原文
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        // 添加到结果区域
+        collectionResults.appendChild(itemElement);
+        
+        // 触发动画
+        setTimeout(() => {
+            itemElement.classList.remove('opacity-0', 'translate-y-2');
+        }, 10);
+        
+        // 自动滚动到底部
+        collectionResults.scrollTop = collectionResults.scrollHeight;
+        
+        // 监听复选框变化
+        const checkbox = itemElement.querySelector('.item-checkbox');
+        checkbox.addEventListener('change', updateSaveButtonState);
+    }
+    
+    // 更新保存按钮状态
+    function updateSaveButtonState() {
+        const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+        saveSelectedBtn.disabled = selectedItems.length === 0;
+    }
+
+    // 保存选中数据
+    saveSelectedBtn.addEventListener('click', function() {
+        const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+        const selectedData = collectedData.filter(item => selectedIds.includes(item.id));
+        
+        if (selectedData.length === 0) {
+            showMessage('请选择要保存的数据', 'warning');
+            return;
+        }
+        
+        // 提交保存请求到后端API
+        this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>保存中...';
+        this.disabled = true;
+        
+        fetch('/api/collection/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ data_ids: selectedIds, task_id: currentTask.id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 保存成功
+                this.innerHTML = '<i class="fas fa-save mr-2"></i>保存选中数据';
+                this.disabled = collectedData.length === 0;
+                
+                // 显示成功提示
+                showMessage('保存成功，共保存 ' + selectedData.length + ' 条数据', 'success');
+                
+                // 可选：标记已保存的数据
+                selectedCheckboxes.forEach(checkbox => {
+                    const itemElement = checkbox.closest('div');
+                    itemElement.classList.add('border-green-500/50');
+                    itemElement.classList.remove('border-gray-700');
+                });
+            } else {
+                // 保存失败
+                this.innerHTML = '<i class="fas fa-save mr-2"></i>保存选中数据';
+                this.disabled = collectedData.length === 0;
+                
+                // 显示错误提示
+                showMessage('保存失败: ' + (data.error || '未知错误'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('保存数据失败:', error);
+            this.innerHTML = '<i class="fas fa-save mr-2"></i>保存选中数据';
+            this.disabled = collectedData.length === 0;
+            
+            // 显示网络错误提示
+            showMessage('网络错误，请稍后重试', 'error');
+        });
+    });
+
+    // 显示消息提示
+    function showMessage(message, type = 'info') {
+        const existingMessage = document.getElementById('message-toast');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.id = 'message-toast';
+        toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 text-sm ${getToastColor(type)}`;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // 获取消息提示颜色
+    function getToastColor(type) {
+        const colors = {
+            success: 'bg-success/90 text-white',
+            error: 'bg-danger/90 text-white',
+            warning: 'bg-yellow-500/90 text-white',
+            info: 'bg-primary/90 text-white'
+        };
+        return colors[type] || colors.info;
+    }
+
+    // 初始化
+    function init() {
+        // 加载爬虫源
+        loadCrawlerSources();
+    }
+
+    // 加载爬虫源
+    function loadCrawlerSources() {
+        // 显示加载状态
+        crawlerSources.innerHTML = `
+            <div class='col-span-full flex justify-center items-center py-8'>
+                <div class='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+            </div>
+        `;
+        
+        // 从后端API获取实际的爬虫源列表
+        fetch('/api/crawler/config')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const crawlers = data.configs.filter(config => config.enabled);
+                    
+                    crawlerSources.innerHTML = '';
+                    
+                    if (crawlers.length === 0) {
+                        crawlerSources.innerHTML = `
+                            <div class='col-span-full text-center py-8'>
+                                <i class='fas fa-exclamation-circle text-gray-400 text-2xl mb-2'></i>
+                                <p class='text-gray-400'>暂无可用的爬虫源，请先在爬虫管理模块启用爬虫源</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    crawlers.forEach(crawler => {
+                        // 创建爬虫源容器
+                        const crawlerElement = document.createElement('div');
+                        crawlerElement.className = 'flex items-center justify-between p-3 bg-dark border border-gray-700 rounded-lg hover:border-primary/50 transition-all';
+                        
+                        // 创建信息容器
+                        const infoDiv = document.createElement('div');
+                        
+                        // 创建名称元素
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'font-medium text-gray-200';
+                        nameDiv.textContent = crawler.name;
+                        infoDiv.appendChild(nameDiv);
+                        
+                        // 创建URL元素
+                        const urlDiv = document.createElement('div');
+                        urlDiv.className = 'text-xs text-gray-400';
+                        urlDiv.textContent = crawler.url || crawler.source_type || '未知';
+                        infoDiv.appendChild(urlDiv);
+                        
+                        // 创建标签容器
+                        const label = document.createElement('label');
+                        label.className = 'relative inline-flex items-center cursor-pointer';
+                        
+                        // 创建复选框
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'sr-only peer';
+                        checkbox.value = crawler.source_type || 'website'; // 使用source_type作为标识，默认为website
+                        // 如果source_type是baidu_search或者是第一个爬虫，默认选中
+                        if (crawler.source_type === 'baidu_search' || (crawlers.indexOf(crawler) === 0 && crawlers.length > 0)) {
+                            checkbox.checked = true;
+                        }
+                        label.appendChild(checkbox);
+                        
+                        // 创建开关元素
+                        const toggleDiv = document.createElement('div');
+                        toggleDiv.className = 'w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-\'\' after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary';
+                        label.appendChild(toggleDiv);
+                        
+                        // 组装元素
+                        crawlerElement.appendChild(infoDiv);
+                        crawlerElement.appendChild(label);
+                        
+                        // 添加到容器
+                        crawlerSources.appendChild(crawlerElement);
+                    });
+                } else {
+                    // 加载失败时使用模拟数据
+                    const crawlers = [
+                        { id: 1, name: '百度搜索', url: 'baidu.com', value: 'baidu_search' },
+                        { id: 2, name: '谷歌搜索', url: 'google.com', value: 'google_search' },
+                        { id: 3, name: '必应搜索', url: 'bing.com', value: 'bing_search' },
+                        { id: 4, name: '搜狗搜索', url: 'sogou.com', value: 'sogou_search' }
+                    ];
+                    
+                    crawlerSources.innerHTML = '';
+                    
+                    crawlers.forEach(crawler => {
+                        const crawlerElement = document.createElement('div');
+                        crawlerElement.className = 'flex items-center justify-between p-3 bg-dark border border-gray-700 rounded-lg hover:border-primary/50 transition-all';
+                        crawlerElement.innerHTML = `
+                            <div>
+                                <div class='font-medium text-gray-200'>${crawler.name}</div>
+                                <div class='text-xs text-gray-400'>${crawler.url}</div>
+                            </div>
+                            <label class='relative inline-flex items-center cursor-pointer'>
+                                <input type='checkbox' class='sr-only peer' value='${crawler.value}' ${crawler.value === 'baidu_search' ? 'checked' : ''}>
+                                <div class='w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary'></div>
+                            </label>
+                        `;
+                        crawlerSources.appendChild(crawlerElement);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('加载爬虫源失败:', error);
+                // 加载失败时使用模拟数据
+                const crawlers = [
+                    { id: 1, name: '百度搜索', url: 'baidu.com', value: 'baidu_search' },
+                    { id: 2, name: '谷歌搜索', url: 'google.com', value: 'google_search' },
+                    { id: 3, name: '必应搜索', url: 'bing.com', value: 'bing_search' },
+                    { id: 4, name: '搜狗搜索', url: 'sogou.com', value: 'sogou_search' }
+                ];
+                
+                crawlerSources.innerHTML = '';
+                
+                crawlers.forEach(crawler => {
+                    const crawlerElement = document.createElement('div');
+                    crawlerElement.className = 'flex items-center justify-between p-3 bg-dark border border-gray-700 rounded-lg hover:border-primary/50 transition-all';
+                    crawlerElement.innerHTML = `
+                        <div>
+                            <div class='font-medium text-gray-200'>${crawler.name}</div>
+                            <div class='text-xs text-gray-400'>${crawler.url}</div>
+                        </div>
+                        <label class='relative inline-flex items-center cursor-pointer'>
+                            <input type='checkbox' class='sr-only peer' value='${crawler.value}' ${crawler.value === 'baidu_search' ? 'checked' : ''}>
+                            <div class='w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary'></div>
+                        </label>
+                    `;
+                    crawlerSources.appendChild(crawlerElement);
+                });
+            });
+    }
+
+    // 初始化页面
+    init();
+
+    // 从本地存储加载关键词历史
+    function loadKeywordHistory() {
+        const history = localStorage.getItem('keywordHistory');
+        return history ? JSON.parse(history) : ['人工智能', '大数据', 'Python', '机器学习', '深度学习', 'web开发', '数据可视化'];
+    }
+    
+    // 保存关键词到历史记录
+    function saveKeywordToHistory(keyword) {
+        if (!keyword.trim()) return;
+        
+        let history = loadKeywordHistory();
+        // 移除重复项
+        history = history.filter(item => item !== keyword);
+        // 添加到开头
+        history.unshift(keyword);
+        // 限制历史记录数量
+        history = history.slice(0, 10);
+        // 保存到本地存储
+        localStorage.setItem('keywordHistory', JSON.stringify(history));
+    }
+    
+    // 更新关键词建议
+    function updateKeywordSuggestions(keyword) {
+        const history = loadKeywordHistory();
+        const suggestions = history.filter(item => 
+            item.includes(keyword) && item !== keyword
+        );
+        
+        keywordSuggestions.innerHTML = '';
+        
+        if (suggestions.length > 0) {
+            suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-2 hover:bg-gray-700 cursor-pointer transition-all';
+                div.textContent = suggestion;
+                div.addEventListener('click', function() {
+                    keywordInput.value = this.textContent;
+                    keywordSuggestions.classList.add('hidden');
+                });
+                keywordSuggestions.appendChild(div);
+            });
+            keywordSuggestions.classList.remove('hidden');
+        } else {
+            keywordSuggestions.classList.add('hidden');
+        }
+    }
+    
+    // 改进关键词输入事件处理
+    keywordInput.addEventListener('input', function() {
+        const keyword = this.value.trim();
+        
+        // 隐藏错误提示
+        keywordError.classList.add('hidden');
+        
+        // 更新关键词建议
+        if (keyword.length > 0) {
+            updateKeywordSuggestions(keyword);
+        } else {
+            keywordSuggestions.classList.add('hidden');
+        }
+    });
+    
+    // 关键词输入框回车事件
+    keywordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const keyword = this.value.trim();
+            if (keyword) {
+                saveKeywordToHistory(keyword);
+                keywordSuggestions.classList.add('hidden');
+            }
+        }
+    });
+    
+    // 改进关键词建议点击事件
+    keywordSuggestions.addEventListener('click', function(e) {
+        if (e.target.tagName === 'DIV') {
+            const keyword = e.target.textContent;
+            keywordInput.value = keyword;
+            saveKeywordToHistory(keyword);
+            keywordSuggestions.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

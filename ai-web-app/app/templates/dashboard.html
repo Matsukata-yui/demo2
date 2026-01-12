@@ -1,0 +1,835 @@
+{% extends 'base.html' %}
+
+{% block title %}数据采集与AI分析平台 - 后台管理系统{% endblock %}
+
+{% block head %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<body class='bg-dark text-gray-100 font-inter min-h-screen flex flex-col'>
+        <!-- 顶部导航栏 -->
+<header class='bg-dark-light/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 transition-all duration-300'>
+        <div class='container mx-auto px-4'>
+        <div class='flex items-center justify-between h-16 md:h-20'>
+        <!-- 品牌Logo -->
+<div class='flex items-center space-x-3'>
+        <div class='w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center neon-border'>
+        <i class='fas fa-microchip text-xl'>
+        </i>
+    </div>
+<h1 class='text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary text-gradient'>
+        DataAI
+    </h1>
+    </div>
+<!-- 桌面端导航 -->
+<nav class='hidden md:flex items-center space-x-1'>
+        <a href='{{ url_for('main.dashboard') }}' class='px-4 py-2 rounded-md text-primary border border-primary/30 bg-primary/10 font-medium transition-all hover:bg-primary/20'>
+        <i class='fas fa-tachometer-alt mr-2'>
+        </i>
+后台主页
+    </a>
+<a href='{{ url_for('main.collection_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-database mr-2'>
+        </i>
+采集管理
+    </a>
+<a href='{{ url_for('main.crawler_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-spider mr-2'>
+        </i>
+爬虫管理
+    </a>
+<a href='{{ url_for('main.data_management') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-table mr-2'>
+        </i>
+数据管理
+    </a>
+<a href='{{ url_for('main.deep_collection') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-search-plus mr-2'>
+        </i>
+深采管理
+    </a>
+<a href='{{ url_for('ai.models') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-brain mr-2'>
+        </i>
+AI模型管理
+    </a>
+<a href='{{ url_for('main.ai_analysis_reports') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5'>
+        <i class='fas fa-file-alt mr-2'>
+        </i>
+AI分析与报告
+    </a>
+<a href='{{ url_for('main.ai_dashboard') }}' class='px-4 py-2 rounded-md text-gray-300 hover:text-white transition-all hover:bg-white/5' target='_blank'>
+        <i class='fas fa-chart-line mr-2'>
+        </i>
+AI数智大屏
+    </a>
+    </nav>
+<!-- 用户区域 -->
+<div class='flex items-center space-x-4'>
+        <button class='p-2 rounded-full hover:bg-white/10 transition-all relative'>
+        <i class='fas fa-bell text-gray-300'>
+        </i>
+<span class='absolute top-1 right-1 w-2 h-2 bg-danger rounded-full'>
+        </span>
+    </button>
+<div class='flex items-center space-x-3 cursor-pointer group'>
+        <div class='w-9 h-9 rounded-full overflow-hidden border-2 border-primary/50'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-full h-full object-cover'/>
+    </div>
+<div class='hidden md:block'>
+        <p class='text-sm font-medium'>
+        管理员
+    </p>
+<p class='text-xs text-gray-400'>
+        admin@dataai.com
+    </p>
+    </div>
+<a href='{{ url_for('main.logout') }}' class='fas fa-sign-out-alt text-xs text-gray-400 group-hover:text-white transition-all'>
+        </a>
+    </div>
+<button class='md:hidden p-2 rounded-lg hover:bg-white/10 transition-all' id='mobile-menu-button'>
+        <i class='fas fa-bars text-gray-300'>
+        </i>
+    </button>
+    </div>
+    </div>
+    </div>
+<!-- 移动端导航菜单 -->
+<div class='md:hidden hidden bg-dark-light/95 backdrop-blur-md border-t border-primary/20' id='mobile-menu'>
+        <div class='container mx-auto px-4 py-3 space-y-1'>
+        <a href='{{ url_for('main.dashboard') }}' class='block px-4 py-3 rounded-md text-primary border border-primary/30 bg-primary/10 font-medium'>
+        <i class='fas fa-tachometer-alt mr-2'>
+        </i>
+后台主页
+    </a>
+<a href='javascript:void(0);' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-database mr-2'>
+        </i>
+采集管理
+    </a>
+<a href='{{ url_for('main.crawler_management') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-spider mr-2'>
+        </i>
+爬虫管理
+    </a>
+<a href='javascript:void(0);' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-table mr-2'>
+        </i>
+数据管理
+    </a>
+<a href='{{ url_for('main.deep_collection') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-search-plus mr-2'>
+        </i>
+深采管理
+    </a>
+<a href='{{ url_for('ai.models') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-brain mr-2'>
+        </i>
+AI模型管理
+    </a>
+<a href='{{ url_for('main.ai_analysis_reports') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-file-alt mr-2'>
+        </i>
+AI分析与报告
+    </a>
+<a href='{{ url_for('main.ai_dashboard') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-chart-line mr-2'>
+        </i>
+AI数智大屏
+    </a>
+<a href='{{ url_for('main.logout') }}' class='block px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-white/5'>
+        <i class='fas fa-sign-out-alt mr-2'>
+        </i>
+退出登录
+    </a>
+    </div>
+    </div>
+    </header>
+<!-- [MODULE] abc_主内容区域 -->
+<main class='flex-1 container mx-auto px-4 py-6'>
+        <!-- [MODULE] d23_后台主页 -->
+<div id='dashboard-page' class='space-y-8'>
+        <!-- [MODULE] 33f_后台主页:页面标题 -->
+<div class='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+        <div >
+        <h2 class='text-[clamp(1.5rem,3vw,2.5rem)] font-bold bg-gradient-to-r from-white to-gray-300 text-gradient'>
+        系统概览
+    </h2>
+<p class='text-gray-400 mt-1'>
+        实时监控系统运行状态和核心数据指标
+    </p>
+    </div>
+<div class='flex flex-wrap gap-3'>
+        <button class='px-4 py-2 bg-dark-light border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-800/50 transition-all'>
+        <i class='fas fa-download text-secondary'>
+        </i>
+<span >
+        导出报告
+    </span>
+    </button>
+<button class='px-4 py-2 bg-primary rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-all pulse-animation'>
+        <i class='fas fa-refresh'>
+        </i>
+<span >
+        刷新数据
+    </span>
+    </button>
+    </div>
+    </div>
+<!-- [/MODULE] 33f_后台主页:页面标题 -- 包含页面标题、系统描述、导出报告按钮和刷新数据按钮 -->
+<!-- [MODULE] 7a2_后台主页:系统状态卡片 -->
+<div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+        <!-- 总数据量卡片 -->
+<div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-primary/50 transition-all duration-300 neon-border group'>
+        <div class='flex items-start justify-between'>
+        <div >
+        <p class='text-gray-400 text-sm'>
+        总数据量
+    </p>
+<h3 class='text-3xl md:text-4xl font-bold mt-1 group-hover:scale-105 transition-transform'>
+        128.5
+<span class='text-secondary text-xl'>
+        M
+    </span>
+    </h3>
+<p class='text-success text-sm mt-2 flex items-center'>
+        <i class='fas fa-arrow-up mr-1'>
+        </i>
+12.5%
+<span class='text-gray-500 ml-1'>
+        vs 上月
+    </span>
+    </p>
+    </div>
+<div class='w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary'>
+        <i class='fas fa-database text-xl'>
+        </i>
+    </div>
+    </div>
+<div class='mt-6 h-1 w-full bg-gray-800 rounded-full overflow-hidden'>
+        <div class='h-full bg-gradient-to-r from-primary to-secondary rounded-full' style='width: 78%'>
+        </div>
+    </div>
+<p class='text-xs text-gray-500 mt-2'>
+        存储使用率: 78%
+    </p>
+    </div>
+<!-- 总爬虫量卡片 -->
+<div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-secondary/50 transition-all duration-300 neon-border group'>
+        <div class='flex items-start justify-between'>
+        <div >
+        <p class='text-gray-400 text-sm'>
+        总爬虫量
+    </p>
+<h3 class='text-3xl md:text-4xl font-bold mt-1 group-hover:scale-105 transition-transform'>
+        32
+<span class='text-secondary text-xl'>
+        个
+    </span>
+    </h3>
+<p class='text-success text-sm mt-2 flex items-center'>
+        <i class='fas fa-arrow-up mr-1'>
+        </i>
+4
+<span class='text-gray-500 ml-1'>
+        新增
+    </span>
+    </p>
+    </div>
+<div class='w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center text-secondary'>
+        <i class='fas fa-spider text-xl'>
+        </i>
+    </div>
+    </div>
+<div class='flex items-center mt-6 space-x-1'>
+        <span class='w-2 h-2 bg-success rounded-full'>
+        </span>
+<span class='text-xs text-gray-400'>
+        28个运行中
+    </span>
+<span class='w-2 h-2 bg-danger rounded-full ml-3'>
+        </span>
+<span class='text-xs text-gray-400'>
+        4个已停止
+    </span>
+    </div>
+    </div>
+<!-- AI引擎状态卡片 -->
+<div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-accent/50 transition-all duration-300 neon-border group'>
+        <div class='flex items-start justify-between'>
+        <div >
+        <p class='text-gray-400 text-sm'>
+        AI引擎状态
+    </p>
+<h3 class='text-3xl md:text-4xl font-bold mt-1 group-hover:scale-105 transition-transform text-success'>
+        正常
+    </h3>
+<p class='text-gray-400 text-sm mt-2'>
+        负载: 42%
+    </p>
+    </div>
+<div class='w-12 h-12 rounded-lg bg-accent/20 flex items-center justify-center text-accent'>
+        <i class='fas fa-brain text-xl'>
+        </i>
+    </div>
+    </div>
+<div class='mt-6 h-1 w-full bg-gray-800 rounded-full overflow-hidden'>
+        <div class='h-full bg-gradient-to-r from-accent to-secondary rounded-full' style='width: 42%'>
+        </div>
+    </div>
+<div class='flex justify-between mt-2'>
+        <p class='text-xs text-gray-400'>
+        GPU: NVIDIA A100 (8/10)
+    </p>
+<p class='text-xs text-success'>
+        99.8% 可用性
+    </p>
+    </div>
+    </div>
+<!-- 系统状态卡片 -->
+<div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-warning/50 transition-all duration-300 neon-border group'>
+        <div class='flex items-start justify-between'>
+        <div >
+        <p class='text-gray-400 text-sm'>
+        系统状态
+    </p>
+<h3 class='text-3xl md:text-4xl font-bold mt-1 group-hover:scale-105 transition-transform text-warning'>
+        注意
+    </h3>
+<p class='text-gray-400 text-sm mt-2'>
+        CPU: 78% | 内存: 65%
+    </p>
+    </div>
+<div class='w-12 h-12 rounded-lg bg-warning/20 flex items-center justify-center text-warning'>
+        <i class='fas fa-server text-xl'>
+        </i>
+    </div>
+    </div>
+<div class='mt-4 space-y-2'>
+        <div >
+        <div class='flex justify-between text-xs text-gray-400 mb-1'>
+        <span >
+        CPU
+    </span>
+<span >
+        78%
+    </span>
+    </div>
+<div class='h-1 w-full bg-gray-800 rounded-full overflow-hidden'>
+        <div class='h-full bg-warning rounded-full' style='width: 78%'>
+        </div>
+    </div>
+    </div>
+<div >
+        <div class='flex justify-between text-xs text-gray-400 mb-1'>
+        <span >
+        内存
+    </span>
+<span >
+        65%
+    </span>
+    </div>
+<div class='h-1 w-full bg-gray-800 rounded-full overflow-hidden'>
+        <div class='h-full bg-primary rounded-full' style='width: 65%'>
+        </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+<!-- [/MODULE] 7a2_后台主页:系统状态卡片 -- 包含总数据量卡片（显示总数据量128.5M和存储使用率78%）、总爬虫量卡片（显示32个爬虫，28个运行中，4个已停止）、AI引擎状态卡片（显示状态正常，负载42%，GPU信息和99.8%可用性）和系统状态卡片（显示CPU使用率78%和内存使用率65%） -->
+<!-- [MODULE] 9d1_后台主页:数据图表区域 -->
+<div class='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <!-- 左侧图表区域 -->
+<div class='lg:col-span-2 bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+        <div class='flex items-center justify-between mb-6'>
+        <h3 class='font-semibold text-lg'>
+        数据增长趋势
+    </h3>
+<div class='flex space-x-2'>
+        <button class='px-3 py-1 text-xs bg-primary/20 text-primary rounded-md'>
+        日
+    </button>
+<button class='px-3 py-1 text-xs bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700/50 transition-all'>
+        周
+    </button>
+<button class='px-3 py-1 text-xs bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700/50 transition-all'>
+        月
+    </button>
+<button class='px-3 py-1 text-xs bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700/50 transition-all'>
+        年
+    </button>
+    </div>
+    </div>
+<div class='h-[300px]' id='data-trend-chart'>
+        </div>
+    </div>
+<!-- 右侧图表区域 -->
+<div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+        <div class='flex items-center justify-between mb-6'>
+        <h3 class='font-semibold text-lg'>
+        爬虫分布
+    </h3>
+<button class='text-gray-400 hover:text-white transition-all'>
+        <i class='fas fa-ellipsis-v'>
+        </i>
+    </button>
+    </div>
+<div class='h-[300px]' id='crawler-distribution-chart'>
+        </div>
+    </div>
+    </div>
+<!-- [/MODULE] 9d1_后台主页:数据图表区域 -- 包含左侧数据增长趋势图表（可按日、周、月、年切换查看）和右侧爬虫分布图表 -->
+<!-- [MODULE] 5e7_后台主页:最近活动和任务区域 -->
+<div class='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <!-- 最近活动日志 -->
+<div class='lg:col-span-2 bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+        <div class='flex items-center justify-between mb-6'>
+        <h3 class='font-semibold text-lg'>
+        最近活动日志
+    </h3>
+<a href='javascript:void(0);' class='text-sm text-primary hover:underline'>
+        查看全部
+    </a>
+    </div>
+<div class='overflow-x-auto'>
+        <table class='w-full min-w-[640px]'>
+        <thead >
+        <tr class='border-b border-gray-800'>
+        <th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>
+        时间
+    </th>
+<th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>
+        操作
+    </th>
+<th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>
+        用户
+    </th>
+<th class='text-left py-3 px-4 text-gray-400 font-medium text-sm'>
+        状态
+    </th>
+    </tr>
+    </thead>
+<tbody >
+        <tr class='border-b border-gray-800/50 hover:bg-white/5 transition-all'>
+        <td class='py-3 px-4 text-sm text-gray-400'>
+        2023-10-15 14:30
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='inline-flex items-center'>
+        <i class='fas fa-database text-primary mr-2'>
+        </i>
+数据采集任务完成
+    </span>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <div class='flex items-center'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-6 h-6 rounded-full mr-2 object-cover border-2 border-primary/50'/>
+        管理员
+    </div>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='px-2 py-1 bg-success/20 text-success rounded-full text-xs'>
+        成功
+    </span>
+    </td>
+    </tr>
+<tr class='border-b border-gray-800/50 hover:bg-white/5 transition-all'>
+        <td class='py-3 px-4 text-sm text-gray-400'>
+        2023-10-15 14:25
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='inline-flex items-center'>
+        <i class='fas fa-spider text-secondary mr-2'>
+        </i>
+爬虫#12启动成功
+    </span>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <div class='flex items-center'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-6 h-6 rounded-full mr-2 object-cover border-2 border-primary/50'/>
+        管理员
+    </div>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='px-2 py-1 bg-success/20 text-success rounded-full text-xs'>
+        成功
+    </span>
+    </td>
+    </tr>
+<tr class='border-b border-gray-800/50 hover:bg-white/5 transition-all'>
+        <td class='py-3 px-4 text-sm text-gray-400'>
+        2023-10-15 14:20
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='inline-flex items-center'>
+        <i class='fas fa-brain text-accent mr-2'>
+        </i>
+AI分析报告生成完成
+    </span>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <div class='flex items-center'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-6 h-6 rounded-full mr-2 object-cover border-2 border-primary/50'/>
+        系统自动
+    </div>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='px-2 py-1 bg-success/20 text-success rounded-full text-xs'>
+        成功
+    </span>
+    </td>
+    </tr>
+<tr class='border-b border-gray-800/50 hover:bg-white/5 transition-all'>
+        <td class='py-3 px-4 text-sm text-gray-400'>
+        2023-10-15 14:15
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='inline-flex items-center'>
+        <i class='fas fa-exclamation-circle text-warning mr-2'>
+        </i>
+爬虫#8连接超时
+    </span>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <div class='flex items-center'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-6 h-6 rounded-full mr-2 object-cover border-2 border-primary/50'/>
+        系统自动
+    </div>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='px-2 py-1 bg-warning/20 text-warning rounded-full text-xs'>
+        警告
+    </span>
+    </td>
+    </tr>
+<tr class='border-b border-gray-800/50 hover:bg-white/5 transition-all'>
+        <td class='py-3 px-4 text-sm text-gray-400'>
+        2023-10-15 14:10
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='inline-flex items-center'>
+        <i class='fas fa-file-export text-primary mr-2'>
+        </i>
+数据导出完成
+    </span>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <div class='flex items-center'>
+        <img src='https://design.gemcoder.com/staticResource/echoAiSystemImages/062d749208db314165933ad5de7f319c.png' alt='用户头像' class='w-6 h-6 rounded-full mr-2 object-cover border-2 border-primary/50'/>
+        管理员
+    </div>
+    </td>
+<td class='py-3 px-4 text-sm'>
+        <span class='px-2 py-1 bg-success/20 text-success rounded-full text-xs'>
+        成功
+    </span>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </div>
+    </div>
+<!-- 任务列表 -->
+<div class='bg-dark-light/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800 neon-border'>
+        <div class='flex items-center justify-between mb-6'>
+        <h3 class='font-semibold text-lg'>
+        任务列表
+    </h3>
+<a href='javascript:void(0);' class='text-sm text-primary hover:underline'>
+        查看全部
+    </a>
+    </div>
+<div class='space-y-4'>
+        <!-- 任务项 -->
+<div class='flex items-start gap-3 p-3 rounded-lg bg-dark-light/80 hover:bg-dark-light transition-all border border-gray-700/50'>
+        <div class='flex-shrink-0 mt-1'>
+        <div class='w-3 h-3 rounded-full bg-primary animate-pulse'>
+        </div>
+    </div>
+<div class='flex-1'>
+        <div class='flex justify-between items-start'>
+        <h4 class='font-medium text-sm'>
+        数据采集任务
+    </h4>
+<span class='text-xs text-gray-400'>
+        进行中
+    </span>
+    </div>
+<p class='text-xs text-gray-400 mt-1'>
+        正在采集网站数据，预计剩余时间: 15分钟
+    </p>
+<div class='mt-2 w-full bg-gray-800 rounded-full h-1.5'>
+        <div class='bg-primary h-1.5 rounded-full' style='width: 75%'>
+        </div>
+    </div>
+    </div>
+    </div>
+<!-- 任务项 -->
+<div class='flex items-start gap-3 p-3 rounded-lg bg-dark-light/80 hover:bg-dark-light transition-all border border-gray-700/50'>
+        <div class='flex-shrink-0 mt-1'>
+        <div class='w-3 h-3 rounded-full bg-secondary animate-pulse'>
+        </div>
+    </div>
+<div class='flex-1'>
+        <div class='flex justify-between items-start'>
+        <h4 class='font-medium text-sm'>
+        AI数据分析
+    </h4>
+<span class='text-xs text-gray-400'>
+        进行中
+    </span>
+    </div>
+<p class='text-xs text-gray-400 mt-1'>
+        正在分析采集的数据，预计剩余时间: 8分钟
+    </p>
+<div class='mt-2 w-full bg-gray-800 rounded-full h-1.5'>
+        <div class='bg-secondary h-1.5 rounded-full' style='width: 55%'>
+        </div>
+    </div>
+    </div>
+    </div>
+<!-- 任务项 -->
+<div class='flex items-start gap-3 p-3 rounded-lg bg-dark-light/80 hover:bg-dark-light transition-all border border-gray-700/50'>
+        <div class='flex-shrink-0 mt-1'>
+        <div class='w-3 h-3 rounded-full bg-accent animate-pulse'>
+        </div>
+    </div>
+<div class='flex-1'>
+        <div class='flex justify-between items-start'>
+        <h4 class='font-medium text-sm'>
+        报告生成
+    </h4>
+<span class='text-xs text-gray-400'>
+        等待中
+    </span>
+    </div>
+<p class='text-xs text-gray-400 mt-1'>
+        等待数据分析完成后生成报告
+    </p>
+<div class='mt-2 w-full bg-gray-800 rounded-full h-1.5'>
+        <div class='bg-accent h-1.5 rounded-full' style='width: 0%'>
+        </div>
+    </div>
+    </div>
+    </div>
+<!-- 任务项 -->
+<div class='flex items-start gap-3 p-3 rounded-lg bg-dark-light/80 hover:bg-dark-light transition-all border border-gray-700/50'>
+        <div class='flex-shrink-0 mt-1'>
+        <div class='w-3 h-3 rounded-full bg-success'>
+        </div>
+    </div>
+<div class='flex-1'>
+        <div class='flex justify-between items-start'>
+        <h4 class='font-medium text-sm'>
+        系统备份
+    </h4>
+<span class='text-xs text-gray-400'>
+        已完成
+    </span>
+    </div>
+<p class='text-xs text-gray-400 mt-1'>
+        系统数据备份已完成，备份文件大小: 2.1GB
+    </p>
+<div class='mt-2 w-full bg-gray-800 rounded-full h-1.5'>
+        <div class='bg-success h-1.5 rounded-full' style='width: 100%'>
+        </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+<!-- [/MODULE] 5e7_后台主页:最近活动和任务区域 -- 包含左侧最近活动日志表格（显示时间、操作、用户和状态）和右侧任务列表（显示数据采集任务、AI数据分析、报告生成和系统备份等任务状态和进度） -->
+    </div>
+    </main>
+<script>
+    // 移动端菜单切换
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+    
+    // 初始化数据增长趋势图表
+    const dataTrendChart = echarts.init(document.getElementById('data-trend-chart'));
+    const dataTrendOption = {
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: 'rgba(29, 33, 41, 0.8)',
+            borderColor: '#165DFF',
+            borderWidth: 1,
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        legend: {
+            data: ['数据量', '增长率'],
+            textStyle: {
+                color: '#C9CDD4'
+            },
+            top: 0
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+            axisLine: {
+                lineStyle: {
+                    color: '#272E3B'
+                }
+            },
+            axisLabel: {
+                color: '#C9CDD4'
+            }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                name: '数据量(M)',
+                axisLine: {
+                    lineStyle: {
+                        color: '#165DFF'
+                    }
+                },
+                axisLabel: {
+                    color: '#C9CDD4'
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#272E3B'
+                    }
+                }
+            },
+            {
+                type: 'value',
+                name: '增长率(%)',
+                axisLine: {
+                    lineStyle: {
+                        color: '#0FC6C2'
+                    }
+                },
+                axisLabel: {
+                    color: '#C9CDD4'
+                },
+                splitLine: {
+                    show: false
+                }
+            }
+        ],
+        series: [
+            {
+                name: '数据量',
+                type: 'line',
+                stack: '总量',
+                smooth: true,
+                lineStyle: {
+                    color: '#165DFF'
+                },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(22, 93, 255, 0.3)' },
+                        { offset: 1, color: 'rgba(22, 93, 255, 0.05)' }
+                    ])
+                },
+                emphasis: {
+                    focus: 'series'
+                },
+                data: [32, 45, 68, 95, 112, 105, 128]
+            },
+            {
+                name: '增长率',
+                type: 'line',
+                yAxisIndex: 1,
+                smooth: true,
+                lineStyle: {
+                    color: '#0FC6C2'
+                },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(15, 198, 194, 0.3)' },
+                        { offset: 1, color: 'rgba(15, 198, 194, 0.05)' }
+                    ])
+                },
+                emphasis: {
+                    focus: 'series'
+                },
+                data: [8, 12, 15, 20, 18, 15, 12]
+            }
+        ]
+    };
+    dataTrendChart.setOption(dataTrendOption);
+    
+    // 初始化爬虫分布图表
+    const crawlerDistributionChart = echarts.init(document.getElementById('crawler-distribution-chart'));
+    const crawlerDistributionOption = {
+        tooltip: {
+            trigger: 'item',
+            backgroundColor: 'rgba(29, 33, 41, 0.8)',
+            borderColor: '#165DFF',
+            borderWidth: 1,
+            textStyle: {
+                color: '#fff'
+            },
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            right: 10,
+            top: 'center',
+            textStyle: {
+                color: '#C9CDD4'
+            }
+        },
+        series: [
+            {
+                name: '爬虫分布',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#1D2129',
+                    borderWidth: 2
+                },
+                label: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '18',
+                        fontWeight: 'bold',
+                        color: '#fff'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: [
+                    { value: 15, name: '网站A', itemStyle: { color: '#165DFF' } },
+                    { value: 8, name: '网站B', itemStyle: { color: '#0FC6C2' } },
+                    { value: 5, name: '网站C', itemStyle: { color: '#722ED1' } },
+                    { value: 2, name: '网站D', itemStyle: { color: '#FF7D00' } },
+                    { value: 2, name: '其他', itemStyle: { color: '#00B42A' } }
+                ]
+            }
+        ]
+    };
+    crawlerDistributionChart.setOption(crawlerDistributionOption);
+    
+    // 响应式调整
+    window.addEventListener('resize', function() {
+        dataTrendChart.resize();
+        crawlerDistributionChart.resize();
+    });
+</script>
+    </body>
+{% endblock %}

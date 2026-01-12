@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+    <meta charset='UTF-8'/>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+    <title>{% block title %}AI智能政企瞭望舆情数据采集与分析系统{% endblock %}</title>
+    <script src='https://res.gemcoder.com/js/reload.js'></script>
+    <script src='https://cdn.tailwindcss.com'></script>
+    <link href='https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet'/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0FC6C2',
+                        accent: '#722ED1',
+                        dark: '#1D2129',
+                        'dark-light': '#272E3B',
+                        'gray-custom': '#86909C',
+                        'light-gray': '#F2F3F5',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(22, 93, 255, 0.5), 0 0 20px rgba(22, 93, 255, 0.3)',
+                        'neon-green': '0 0 10px rgba(15, 198, 194, 0.5), 0 0 20px rgba(15, 198, 194, 0.3)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style type='text/tailwindcss'>
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 0 8px rgba(22, 93, 255, 0.6);
+            }
+            .bg-grid {
+                background-image: radial-gradient(rgba(22, 93, 255, 0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .glass {
+                backdrop-filter: blur(10px);
+                background-color: rgba(29, 33, 41, 0.7);
+            }
+            .glass-effect {
+                backdrop-filter: blur(10px);
+                background-color: rgba(29, 33, 41, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .animate-pulse-slow {
+                animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+            .btn-blue {
+                @apply px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors;
+            }
+            .btn-green {
+                @apply px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors;
+            }
+            .btn-red {
+                @apply px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors;
+            }
+            .btn-gray {
+                @apply px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors;
+            }
+            .btn-sm {
+                @apply px-2 py-1 text-sm;
+            }
+            .input-field {
+                @apply px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+            }
+            .pagination-btn {
+                @apply px-3 py-1 mx-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors;
+            }
+            .pagination-btn.active {
+                @apply bg-blue-600 hover:bg-blue-700;
+            }
+            .pagination-btn:disabled {
+                @apply opacity-50 cursor-not-allowed;
+            }
+            .neon-text-blue {
+                @apply text-blue-400;
+                text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class='bg-dark font-inter text-white min-h-screen'>
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

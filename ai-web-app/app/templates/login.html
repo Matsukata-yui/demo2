@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- 背景装饰 -->
+<div class='fixed inset-0 bg-grid opacity-30 z-0'></div>
+<div class='fixed top-0 right-0 w-96 h-96 bg-primary/20 rounded-full filter blur-[100px] z-0'></div>
+<div class='fixed bottom-0 left-0 w-96 h-96 bg-secondary/20 rounded-full filter blur-[100px] z-0'></div>
+
+<!-- [MODULE] a1b_主内容区域 -->
+<div class='flex flex-col min-h-screen relative z-10'>
+    <!-- [MODULE] c3d_登录页面 -->
+    <div class='flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8'>
+        <div class='w-full max-w-md'>
+            <!-- [MODULE] e5f_登录页面:登录卡片 -->
+            <div class='glass rounded-2xl p-8 border border-primary/30 shadow-neon relative overflow-hidden'>
+                <!-- 装饰元素 -->
+                <div class='absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-2xl'></div>
+                <div class='absolute -bottom-10 -left-10 w-40 h-40 bg-secondary/20 rounded-full blur-2xl'></div>
+                
+                <!-- [MODULE] g7h_登录页面:系统标题 -->
+                <div class='text-center mb-8 relative z-10'>
+                    <div class='w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-neon animate-float'>
+                        <i class='fas fa-brain text-2xl'></i>
+                    </div>
+                    <h1 class='text-[clamp(1.5rem,3vw,2rem)] font-bold text-white text-shadow'>
+                        AI智能政企瞭望舆情数据采集与分析系统
+                    </h1>
+                    <p class='text-gray-custom mt-2'>
+                        数据驱动决策，智能洞察未来
+                    </p>
+                </div>
+                
+                <!-- [MODULE] i9j_登录页面:登录表单 -->
+                <form id='loginForm' action='{{ url_for('main.login') }}' method='POST' class='space-y-6 relative z-10'>
+                    <!-- CSRF令牌 -->
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- [MODULE] k0l_登录页面:用户名输入框 -->
+                    <div>
+                        <label for='username' class='block text-sm font-medium text-gray-300 mb-1'>
+                            用户名
+                        </label>
+                        <div class='relative'>
+                            <div class='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                                <i class='fas fa-user text-primary/70'></i>
+                            </div>
+                            {{ form.username(class='block w-full pl-10 pr-3 py-3 bg-dark-light border border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 text-white placeholder-gray-500', placeholder='请输入用户名') }}
+                        </div>
+                    </div>
+                    
+                    <!-- [MODULE] m2n_登录页面:密码输入框 -->
+                    <div>
+                        <label for='password' class='block text-sm font-medium text-gray-300 mb-1'>
+                            密码
+                        </label>
+                        <div class='relative'>
+                            <div class='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                                <i class='fas fa-lock text-primary/70'></i>
+                            </div>
+                            {{ form.password(class='block w-full pl-10 pr-10 py-3 bg-dark-light border border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 text-white placeholder-gray-500', placeholder='请输入密码', id='password') }}
+                            <button type='button' id='togglePassword' class='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors'>
+                                <i class='fas fa-eye-slash'></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- [MODULE] o4p_登录页面:记住密码和忘记密码 -->
+                    <div class='flex items-center justify-between'>
+                        <div class='flex items-center'>
+                            {{ form.remember(class='h-4 w-4 text-primary focus:ring-primary border-gray-600 rounded') }}
+                            <label for='remember' class='ml-2 block text-sm text-gray-300'>
+                                记住我
+                            </label>
+                        </div>
+                        <div class='text-sm'>
+                            <a href='javascript:void(0);' class='font-medium text-primary hover:text-primary/80 transition-colors'>
+                                忘记密码?
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- [MODULE] q6r_登录页面:登录按钮 -->
+                    <div>
+                        {{ form.submit(class='w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]', id='loginButton') }}
+                    </div>
+                </form>
+                
+                <!-- [MODULE] s8t_登录页面:系统状态 -->
+                <div class='mt-8 pt-6 border-t border-gray-700/50 text-center text-sm text-gray-custom'>
+                    <div class='flex justify-center items-center space-x-4'>
+                        <div class='flex items-center'>
+                            <span class='w-2 h-2 bg-success rounded-full mr-2 animate-pulse'></span>
+                            <span>
+                                系统正常运行中
+                            </span>
+                        </div>
+                        <div class='h-4 w-px bg-gray-700'></div>
+                        <div>
+                            <span>
+                                版本: v1.0.0
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- [JSMOD] u0v_登录功能 -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 获取DOM元素
+    var loginForm = document.getElementById('loginForm');
+    var usernameInput = document.getElementById('username');
+    var passwordInput = document.getElementById('password');
+    var togglePassword = document.getElementById('togglePassword');
+    var loginButton = document.getElementById('loginButton');
+
+    // 切换密码可见性
+    togglePassword.addEventListener('click', function () {
+        var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // 切换图标
+        this.querySelector('i').classList.toggle('fa-eye');
+        this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+
+    // 添加输入框动画效果
+    var inputs = [usernameInput, passwordInput];
+    inputs.forEach(function (input) {
+        input.addEventListener('focus', function () {
+            this.parentElement.classList.add('scale-[1.02]');
+            this.parentElement.style.transition = 'transform 0.3s ease';
+        });
+        input.addEventListener('blur', function () {
+            this.parentElement.classList.remove('scale-[1.02]');
+        });
+    });
+
+    // 显示通知函数
+    function showNotification(message, type = 'info') {
+        // 创建通知元素
+        var notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-500 translate-x-full ${type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-primary'}`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+
+        // 添加到页面
+        document.body.appendChild(notification);
+
+        // 显示通知
+        setTimeout(function () {
+            notification.classList.remove('translate-x-full');
+        }, 10);
+
+        // 自动关闭
+        setTimeout(function () {
+            notification.classList.add('translate-x-full');
+            setTimeout(function () {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
+
+    // 检查URL参数中的错误信息
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error) {
+        showNotification(error, 'error');
+    }
+});
+</script>
+{% endblock %}
